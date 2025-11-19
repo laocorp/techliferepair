@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- MEJORAS VISUALES GLOBALES --- */
+
+body {
+    font-family: 'Outfit', sans-serif;
+    /* Esto hace que el texto se vea más delgado y nítido en fondos oscuros */
+    -webkit-font-smoothing: antialiased; 
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mejorar las tarjetas */
+.card {
+    @apply border border-base-300 shadow-xl bg-base-200;
+    transition: all 0.3s ease;
+}
+
+/* Efecto Hover sutil en las tarjetas (Opcional: quítalo si no te gusta) */
+.card:hover {
+    @apply border-primary shadow-2xl; /* Borde sólido, sin transparencia */
+    transform: translateY(-2px);
+}
+
+/* Inputs más elegantes */
+input, select, textarea {
+    @apply bg-base-100 border-base-300 focus:border-primary focus:ring-1 focus:ring-primary;
+}
+
+/* Scrollbar Oscuro Personalizado (Solo para Chrome/Edge/Safari) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a; 
+}
+::-webkit-scrollbar-thumb {
+    background: #334155; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; 
+}
