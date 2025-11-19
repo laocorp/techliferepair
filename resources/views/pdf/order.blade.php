@@ -8,7 +8,7 @@
         @page { margin: 0; }
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            margin-top: 3.5cm; /* Aumenté un poco para que quepa el QR sin chocar */
+            margin-top: 3.5cm; 
             margin-bottom: 2cm;
             margin-left: 1cm;
             margin-right: 1cm;
@@ -24,7 +24,7 @@
             top: 0cm;
             left: 0cm;
             right: 0cm;
-            height: 3cm; /* Header más alto para alojar el QR */
+            height: 3cm;
             padding: 0.5cm 1cm;
             border-bottom: 3px solid #3b82f6;
             background-color: #f8fafc;
@@ -58,7 +58,7 @@
         .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; color: #0f172a; }
         .sub-logo { font-size: 10px; color: #64748b; margin-top: 2px; }
         
-        /* --- CAJAS (GRID) --- */
+        /* --- CAJAS DE INFORMACIÓN (AQUÍ ESTABA EL ERROR ANTES) --- */
         .boxes-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 20px; margin-top: 10px; }
         .box-cell {
             width: 48%;
@@ -182,7 +182,7 @@
                     
                     @if($order->tracking_token)
                         <div style="margin-top: 8px; float: right;">
-                             <img src="data:image/png;base64, {{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(70)->generate(route('track.status', $order->tracking_token))) }}">
+                            <img src="data:image/png;base64, {{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(70)->generate(route('track.status', $order->tracking_token))) }}">
                             <div style="font-size: 8px; color: #94a3b8; margin-top: 2px;">Escanear para rastrear</div>
                         </div>
                     @endif
@@ -203,17 +203,21 @@
     <table class="boxes-table">
         <tr>
             <td class="box-cell">
-                <div class="box-title">Equipo / Maquinaria</div> <div class="box-content">
+                <div class="box-title">Datos del Cliente</div>
+                <div class="box-content">
                     <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #0f172a;">
-                        {{ $order->asset->brand }} {{ $order->asset->model }}
+                        {{ $order->asset->client->name }}
                     </div>
-                    <span class="box-label">Serial / Placa:</span> {{ $order->asset->serial_number }}<br>
-                    <span class="box-label">Tipo:</span> {{ $order->asset->type ?? 'General' }}
+                    <span class="box-label">ID/RUC:</span> {{ $order->asset->client->tax_id ?? '---' }}<br>
+                    <span class="box-label">Teléfono:</span> {{ $order->asset->client->phone ?? '---' }}<br>
+                    <span class="box-label">Email:</span> {{ $order->asset->client->email ?? '---' }}
                 </div>
             </td>
+
             <td class="spacer-cell"></td>
+
             <td class="box-cell">
-                <div class="box-title">Equipo / Activo</div>
+                <div class="box-title">Equipo / Maquinaria</div>
                 <div class="box-content">
                     <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #0f172a;">
                         {{ $order->asset->brand }} {{ $order->asset->model }}

@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
 	'role',
+	'client_id',
     ];
 
     /**
@@ -56,5 +57,9 @@ class User extends Authenticatable
     public function isTech(): bool
     {
         return $this->role === 'tech'; // o 'tecnico'
+    }
+    public function isClient(): bool
+    {
+        return $this->role === 'client';
     }
 }

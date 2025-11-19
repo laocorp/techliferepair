@@ -1,3 +1,4 @@
+
 <?php
 
 use Livewire\Volt\Component;
@@ -35,6 +36,12 @@ class extends Component {
         $this->reset(['drawer', 'my_client', 'name', 'email', 'tax_id', 'phone']);
         $this->resetValidation();
     }
+    // Función para abrir el cajón de crear
+	public function create(): void
+	{
+	    $this->clean();      // Limpia el formulario
+	    $this->drawer = true; // Abre el cajón
+	}
 
     // Cargar datos para Editar
     public function edit(Client $client): void
@@ -105,7 +112,7 @@ class extends Component {
             <x-input icon="o-magnifying-glass" placeholder="Buscar..." wire:model.live.debounce="search" />
         </x-slot:middle>
         <x-slot:actions>
-            <x-button icon="o-plus" class="btn-primary" label="Nuevo Cliente" wire:click="clean; $toggle('drawer')" />
+            <x-button icon="o-plus" class="btn-primary" label="Nuevo Cliente" wire:click="create" />
         </x-slot:actions>
     </x-header>
 
@@ -113,11 +120,17 @@ class extends Component {
         <x-table :headers="$headers" :rows="$clients" striped @row-click="wire:click='edit($event.detail.id)'" class="cursor-pointer">
             @scope('cell_tax_id', $client)
                 <span class="text-gray-500 font-bold">{{ $client->tax_id ?? '---' }}</span>
-            @endscope
-            
+            @endscope            
             {{-- Botón de editar explícito en la tabla (opcional pero útil) --}}
             @scope('actions', $client)
                 <x-button icon="o-pencil" spinner class="btn-sm btn-ghost text-primary" wire:click="edit({{ $client->id }})" />
+            @endscope
+		@scope('actions', $client)
+                <div class="flex gap-1">
+                    <x-button icon="o-eye" link="/clients/{{ $client->id }}" class="btn-sm btn-ghost text-info" tooltip="Ver Historial" />
+                    
+                    <x-button icon="o-pencil" spinner class="btn-sm btn-ghost text-warning" wire:click="edit({{ $client->id }})" tooltip="Editar Datos" />
+                </div>
             @endscope
 
             <x-slot:empty>

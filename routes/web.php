@@ -62,6 +62,13 @@ Route::get('/orders/{order}/report-pdf', [PdfController::class, 'printTechnicalR
 
     // Salir
     Route::get('/logout', LogoutController::class)->name('logout');
+
+	Volt::route('/dashboard', 'dashboard.index')->name('dashboard');
+
+    // Ruta del Portal Cliente
+    Volt::route('/my-portal', 'client-portal.index')->name('client.portal');
+Volt::route('/clients/{client}', 'clients.show')->name('clients.show');
+
 });
 
 require __DIR__.'/auth.php';

@@ -32,7 +32,7 @@ new #[Layout('layouts.guest')] class extends Component {
 
         RateLimiter::clear($this->throttleKey());
         session()->regenerate();
-        $this->redirectIntended(default: RouteServiceProvider::HOME);
+$this->redirectIntended(default: route('dashboard'));
     }
 
     protected function ensureIsNotRateLimited(): void

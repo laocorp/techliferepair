@@ -10,11 +10,22 @@ new
 #[Layout('layouts.app')]
 class extends Component {
     
+    public function mount(): void
+    {
+        // 1. Redirección de Seguridad para Clientes
+        if (auth()->user()->isClient()) {
+            $this->redirect(route('client.portal'), navigate: true);
+            return; 
+        }
+    }
+
     public function with(): array
     {
+        // Lógica para mostrar dinero solo a admins
+        $isAdmin = auth()->user()->isAdmin();
+
         return [
-            // Dinero (Solo lo calcula si eres admin para ahorrar recursos)
-            'revenue_month' => auth()->user()->isAdmin() 
+            'revenue_month' => $isAdmin 
                 ? RepairOrder::whereIn('status', ['listo', 'entregado'])->whereMonth('created_at', now()->month)->sum('total_cost')
                 : 0,
 
@@ -22,15 +33,30 @@ class extends Component {
             'total_clients' => Client::count(),
             'low_stock_parts' => Part::whereColumn('stock', '<=', 'stock_min')->count(),
 
+            // Últimas órdenes
             'latest_orders' => RepairOrder::with(['asset.client'])
                 ->latest()
                 ->take(5)
                 ->get(),
-                
-            'headers' => $this->headers()
+            
+            // Alertas de Mantenimiento (> 3 meses)
+            'maintenance_alerts' => RepairOrder::query()
+                ->with(['asset.client'])
+                ->where('status', 'entregado')
+                ->whereDate('updated_at', '<=', now()->subMonths(3))
+                ->latest()
+                ->take(5) 
+                ->get(),
+
+            // Headers para la tabla principal
+            'headers' => $this->headers(),
+            
+            // Headers para la tabla de mantenimiento (ESTO FALTABA)
+            'maintenance_headers' => $this->maintenanceHeaders()
         ];
     }
 
+    // Columnas tabla principal
     public function headers(): array
     {
         $headers = [
@@ -39,12 +65,20 @@ class extends Component {
             ['key' => 'status', 'label' => 'Estado'],
         ];
 
-        // Solo agregamos la columna de dinero si es ADMIN
         if(auth()->user()->isAdmin()) {
             $headers[] = ['key' => 'total_cost', 'label' => 'Total', 'class' => 'text-right font-bold'];
         }
 
         return $headers;
+    }
+
+    // Columnas tabla mantenimiento (NUEVO)
+    public function maintenanceHeaders(): array
+    {
+        return [
+            ['key' => 'asset.client.name', 'label' => 'Cliente / Equipo'],
+            ['key' => 'updated_at', 'label' => 'Fecha Entrega'],
+        ];
     }
 }; ?>
 
@@ -53,7 +87,7 @@ class extends Component {
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         
-        {{-- 💰 CAJA DE DINERO (SOLO ADMIN) --}}
+        {{-- DINERO (SOLO ADMIN) --}}
         @if(auth()->user()->isAdmin())
             <x-stat 
                 title="Facturación Mes" 
@@ -94,8 +128,9 @@ class extends Component {
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="lg:col-span-2">
-            <x-card title="Últimos Ingresos" class="shadow-xl h-full" separator>
+        <div class="lg:col-span-2 space-y-8">
+            
+            <x-card title="Últimos Ingresos" class="shadow-xl" separator>
                 <x-table :headers="$headers" :rows="$latest_orders" link="/orders/{id}">
                     
                     @scope('cell_id', $order)
@@ -111,17 +146,39 @@ class extends Component {
                             $ {{ number_format($order->total_cost, 2) }}
                         @endscope
                     @endif
-
                 </x-table>
-                
                 <x-slot:actions>
                     <x-button label="Ver todas" link="/orders" class="btn-ghost btn-sm" />
                 </x-slot:actions>
             </x-card>
+
+            {{-- AQUÍ ESTABA EL ERROR: FALTABA :headers --}}
+            <x-card title="🔔 Oportunidades de Mantenimiento" subtitle="Equipos entregados hace > 3 meses" separator class="border-l-4 border-warning shadow-xl">
+                <x-table :headers="$maintenance_headers" :rows="$maintenance_alerts">
+                    
+                    @scope('cell_asset.client.name', $order)
+                        <div class="flex flex-col">
+                            <span class="font-bold">{{ $order->asset->client->name }}</span>
+                            <span class="text-xs opacity-60">{{ $order->asset->brand }} {{ $order->asset->model }}</span>
+                        </div>
+                    @endscope
+                    
+                    @scope('cell_updated_at', $order)
+                        Hace {{ $order->updated_at->diffInMonths() }} meses
+                    @endscope
+                    
+                    @scope('actions', $order)
+                        @if($order->asset->client->phone)
+                            <x-button icon="o-chat-bubble-left" class="btn-sm btn-circle btn-success text-white"
+                                link="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->asset->client->phone) }}?text=Hola {{ $order->asset->client->name }}, notamos que tu equipo {{ $order->asset->model }} ya cumplió su ciclo de mantenimiento. ¿Deseas agendar una revisión?" external />
+                        @endif
+                    @endscope
+                </x-table>
+            </x-card>
+
         </div>
 
         <div class="lg:col-span-1 flex flex-col gap-4">
-            
             <div class="bg-primary/10 border border-primary/20 rounded-2xl p-6 flex items-center gap-4 hover:bg-primary/20 transition cursor-pointer" onclick="window.location='/orders'">
                 <div class="bg-primary text-white p-4 rounded-full shadow-lg shadow-primary/40">
                     <x-icon name="o-plus" class="w-6 h-6" />
@@ -141,7 +198,6 @@ class extends Component {
                     <div class="text-xs opacity-70 text-gray-300">Ver stock actual</div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>

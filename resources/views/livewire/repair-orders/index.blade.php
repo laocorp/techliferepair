@@ -31,6 +31,12 @@ class extends Component {
         $this->resetValidation();
     }
 
+public function create(): void
+{
+    $this->clean();
+    $this->drawer = true;
+}
+
     public function save(): void
     {
         $this->validate();
@@ -87,7 +93,7 @@ class extends Component {
             <x-input icon="o-magnifying-glass" placeholder="Buscar..." wire:model.live.debounce="search" />
         </x-slot:middle>
         <x-slot:actions>
-            <x-button icon="o-plus" class="btn-primary" label="Nueva Orden" wire:click="$toggle('drawer')" />
+	<x-button icon="o-plus" class="btn-primary" label="Nueva Orden" wire:click="create" />
         </x-slot:actions>
     </x-header>
 

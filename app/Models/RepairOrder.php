@@ -16,7 +16,8 @@ class RepairOrder extends Model
         'diagnosis_notes', 
         'is_warranty', 
         'total_cost',
-        'tracking_token'    
+        'tracking_token',
+        'payment_status'    
     ];
 
     
@@ -58,6 +59,14 @@ class RepairOrder extends Model
     {
         return $this->hasOne(TechnicalReport::class);
     } 
+    public function getPaymentColorAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'pending' => 'error',   // Rojo
+            'paid'    => 'success', // Verde
+            default   => 'neutral',
+        };
+    }
     // Generación automática del token al crear
     protected static function booted(): void
     {

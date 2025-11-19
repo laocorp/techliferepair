@@ -42,7 +42,11 @@ class extends Component {
         $this->reset(['drawer', 'my_user', 'name', 'email', 'password', 'role']);
         $this->resetValidation();
     }
-
+	 public function create(): void
+{
+    $this->clean();
+    $this->drawer = true;
+}
     public function edit(User $user): void
     {
         $this->my_user = $user;
@@ -128,7 +132,7 @@ class extends Component {
             <x-input icon="o-magnifying-glass" placeholder="Buscar..." wire:model.live.debounce="search" />
         </x-slot:middle>
         <x-slot:actions>
-            <x-button icon="o-plus" class="btn-primary" label="Nuevo Usuario" wire:click="clean; $toggle('drawer')" />
+<x-button icon="o-plus" class="btn-primary" label="Nuevo Usuario" wire:click="create" />
         </x-slot:actions>
     </x-header>
 

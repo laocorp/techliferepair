@@ -24,8 +24,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Compartir la variable $settings con TODAS las vistas
         // Usamos el try-catch o el if para evitar errores si la tabla aun no existe
-        if (Schema::hasTable('settings')) {
-            View::share('settings', Setting::first() ?? new Setting());
-        }
+       if (Schema::hasTable('settings')) {
+          View::share('settings', Setting::first() ?? new Setting());
+       
+	 }
     }
 }

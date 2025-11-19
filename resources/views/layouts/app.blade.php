@@ -42,40 +42,71 @@
                 </div>
             </div>
 
-            {{-- PERFIL --}}
+            {{-- PERFIL DE USUARIO --}}
             <div class="px-4 mb-6">
                 <div class="bg-base-100 p-3 rounded-xl border border-base-300 flex items-center gap-3 shadow-sm">
                     <x-avatar :image="url('https://robohash.org/'.auth()->user()->email)" class="!w-10 h-10 rounded-lg bg-base-200" />
                     <div class="overflow-hidden">
                         <div class="text-sm font-bold truncate text-white">{{ auth()->user()->name }}</div>
                         <div class="text-xs text-primary font-bold uppercase tracking-wide">
-                            {{ auth()->user()->isAdmin() ? 'Administrador' : 'Técnico' }}
+                            @if(auth()->user()->isClient())
+                                CLIENTE VIP
+                            @elseif(auth()->user()->isAdmin())
+                                ADMINISTRADOR
+                            @else
+                                TÉCNICO
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- MENÚ --}}
+            {{-- MENÚ PRINCIPAL --}}
             <x-menu activate-by-route class="px-3 gap-1 text-sm font-medium">
-                <x-menu-item title="Dashboard" icon="o-home" link="/dashboard" class="rounded-lg" />
                 
-                <x-menu-sub title="Operaciones" icon="o-cpu-chip">
-                    <x-menu-item title="Órdenes de Trabajo" icon="o-clipboard-document-list" link="/orders" />
-                    <x-menu-item title="Equipos" icon="o-cube" link="/assets" />
-                </x-menu-sub>
-                
-                <x-menu-item title="Clientes" icon="o-users" link="/clients" class="rounded-lg" />
-                <x-menu-item title="Inventario" icon="o-archive-box" link="/parts" class="rounded-lg" />
-                
-                {{-- SECCIÓN ADMIN (Protegida) --}}
-                @if(auth()->user()->isAdmin())
-                    <x-menu-separator title="Administración" class="mt-4 mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider pl-3" />
-	            <x-menu-item title="Equipo / Usuarios" icon="o-user-group" link="/users" class="rounded-lg" />       
- 		    <x-menu-item title="Configuración" icon="o-cog-6-tooth" link="/settings" class="rounded-lg" />
+                {{-- ================================================= --}}
+                {{-- MENÚ PARA CLIENTES (Vista Limitada) --}}
+                {{-- ================================================= --}}
+                @if(auth()->user()->isClient())
+                    
+                    <x-menu-item title="Mi Portal" icon="o-computer-desktop" link="/my-portal" class="rounded-lg" />
+                    
+                    <div class="bg-primary/10 border border-primary/20 rounded-xl p-4 mt-4 mb-2">
+                        <div class="text-xs font-bold text-primary mb-1">¿Necesitas ayuda?</div>
+                        <div class="text-[10px] text-gray-400">Contacta a soporte técnico directamente.</div>
+                        <x-button label="WhatsApp Soporte" icon="o-chat-bubble-left" class="btn-xs btn-primary w-full mt-2" external link="https://wa.me/593900000000" />
+                    </div>
+
+                {{-- ================================================= --}}
+                {{-- MENÚ PARA STAFF (Admin y Técnicos) --}}
+                {{-- ================================================= --}}
+                @else
+
+                    <x-menu-item title="Dashboard" icon="o-home" link="/dashboard" class="rounded-lg" />
+                    
+                    <x-menu-sub title="Operaciones" icon="o-cpu-chip">
+                        <x-menu-item title="Órdenes de Trabajo" icon="o-clipboard-document-list" link="/orders" />
+                        <x-menu-item title="Equipos" icon="o-cube" link="/assets" />
+                    </x-menu-sub>
+                    
+                    <x-menu-item title="Clientes" icon="o-users" link="/clients" class="rounded-lg" />
+                    <x-menu-item title="Inventario" icon="o-archive-box" link="/parts" class="rounded-lg" />
+                    
+                    {{-- SOLO ADMIN --}}
+                    @if(auth()->user()->isAdmin())
+                        <x-menu-separator title="Administración" class="mt-4 mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider pl-3" />
+                        <x-menu-item title="Equipo / Usuarios" icon="o-user-group" link="/users" class="rounded-lg" />        
+                        <x-menu-item title="Configuración" icon="o-cog-6-tooth" link="/settings" class="rounded-lg" />
+                    @endif
+
                 @endif
-                
+
+                {{-- ================================================= --}}
+                {{-- BOTÓN SALIR (Para Todos) --}}
+                {{-- ================================================= --}}
                 <div class="mt-6"></div>
                 <x-menu-item title="Cerrar Sesión" icon="o-power" link="/logout" no-wire-navigate class="text-error hover:bg-error/10 rounded-lg" />
+                
             </x-menu>
         </x-slot:sidebar>
 
