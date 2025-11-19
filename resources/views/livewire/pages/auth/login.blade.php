@@ -32,7 +32,7 @@ new #[Layout('layouts.guest')] class extends Component {
 
         RateLimiter::clear($this->throttleKey());
         session()->regenerate();
-$this->redirectIntended(default: route('dashboard'));
+        $this->redirectIntended(default: route('dashboard'));
     }
 
     protected function ensureIsNotRateLimited(): void
@@ -50,71 +50,72 @@ $this->redirectIntended(default: route('dashboard'));
     }
 }; ?>
 
-<div class="min-h-screen flex items-center justify-center bg-base-100 relative overflow-hidden">
+<div class="min-h-screen flex w-full">
     
-    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-    <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-[100px]"></div>
-
-    <div class="w-full max-w-md p-8 relative z-10">
-        
-        <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-base-200 border border-base-300 shadow-2xl mb-6">
-                <x-icon name="o-lock-closed" class="w-8 h-8 text-primary" />
+    <div class="flex-1 flex items-center justify-center p-8 bg-white">
+        <div class="w-full max-w-sm space-y-8">
+            
+            <div>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clip-rule="evenodd" /></svg>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">TECHLIFE</span>
+                </div>
+                <h2 class="text-3xl font-bold tracking-tight text-slate-900">Bienvenido de nuevo</h2>
+                <p class="mt-2 text-sm text-slate-500">Ingresa tus credenciales para acceder al portal.</p>
             </div>
-            <h2 class="text-3xl font-black text-white tracking-tight">Bienvenido</h2>
-            <p class="text-gray-500 mt-2 text-sm">Ingresa al panel de control administrativo.</p>
-        </div>
 
-        <div class="bg-base-200/50 backdrop-blur-sm border border-base-300 p-8 rounded-3xl shadow-2xl">
-            <x-form wire:submit="login" class="space-y-5">
-                
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 ml-1 uppercase">Email Corporativo</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <x-icon name="o-envelope" class="w-5 h-5 text-gray-500" />
-                        </div>
-                        <input wire:model="email" type="email" 
-                               class="w-full pl-11 pr-4 py-4 bg-base-100 border border-base-300 rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none placeholder-gray-600"
-                               placeholder="usuario@techlife.com">
-                    </div>
-                    @error('email') <span class="text-error text-xs ml-1">{{ $message }}</span> @enderror
+            <form wire:submit="login" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email Corporativo</label>
+                    <input wire:model="email" type="email" class="input-pro" placeholder="nombre@empresa.com">
+                    @error('email') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 ml-1 uppercase">Contraseña</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <x-icon name="o-key" class="w-5 h-5 text-gray-500" />
-                        </div>
-                        <input wire:model="password" type="password" 
-                               class="w-full pl-11 pr-4 py-4 bg-base-100 border border-base-300 rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none placeholder-gray-600"
-                               placeholder="••••••••">
-                    </div>
-                    @error('password') <span class="text-error text-xs ml-1">{{ $message }}</span> @enderror
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña</label>
+                    <input wire:model="password" type="password" class="input-pro" placeholder="••••••••">
+                    @error('password') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
-                    <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" wire:model="remember" class="checkbox checkbox-primary checkbox-xs rounded-md" /> 
-                        <span class="text-sm text-gray-400 group-hover:text-white transition">Mantener sesión</span>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model="remember" class="rounded border-gray-300 text-blue-600 focus:ring-blue-600">
+                        <span class="text-sm text-slate-600">Recordarme</span>
                     </label>
+                    @if (Route::has('password.request'))
+                        <a href="{{ route('password.request') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                            ¿Olvidaste tu clave?
+                        </a>
+                    @endif
                 </div>
 
-                <button type="submit" class="btn btn-primary w-full h-14 rounded-xl text-white text-lg font-bold shadow-lg shadow-primary/20 mt-4" wire:loading.attr="disabled">
-                    <span wire:loading.remove>INGRESAR</span>
-                    <span wire:loading class="loading loading-spinner"></span>
+                <button type="submit" class="btn-pro" wire:loading.attr="disabled">
+                    <span wire:loading.remove>Iniciar Sesión</span>
+                    <span wire:loading class="opacity-50">Cargando...</span>
                 </button>
-            </x-form>
-        </div>
+            </form>
 
-        @if (Route::has('register'))
-            <div class="mt-8 text-center">
-                <a href="{{ route('register') }}" class="text-sm text-gray-500 hover:text-primary transition">
-                    ¿No tienes cuenta? <span class="font-bold text-white">Solicitar Acceso</span>
-                </a>
+            @if (Route::has('register'))
+            <div class="pt-6 text-center border-t border-gray-100">
+                <p class="text-sm text-slate-500">
+                    ¿No tienes una cuenta? 
+                    <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:text-blue-800">Regístrate</a>
+                </p>
             </div>
-        @endif
-        
+            @endif
+        </div>
+    </div>
+
+    <div class="hidden lg:block relative flex-1 bg-slate-900">
+        <img class="absolute inset-0 w-full h-full object-cover opacity-40" 
+             src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop" 
+             alt="Industrial Tech">
+        <div class="relative z-10 flex flex-col justify-end h-full p-12 text-white">
+            <div class="w-12 h-1 bg-blue-500 mb-6"></div>
+            <h3 class="text-4xl font-bold leading-tight mb-4">Gestión Inteligente para Servicios Técnicos.</h3>
+            <p class="text-lg text-slate-300 max-w-md">Optimiza operaciones, controla inventarios y fideliza clientes con la plataforma líder del mercado.</p>
+        </div>
     </div>
 </div>

@@ -1,47 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* --- MEJORAS VISUALES GLOBALES --- */
+/* --- REGLAS GLOBALES DE DISEÑO EMPRESARIAL --- */
 
 body {
-    font-family: 'Outfit', sans-serif;
-    /* Esto hace que el texto se vea más delgado y nítido en fondos oscuros */
-    -webkit-font-smoothing: antialiased; 
-    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased; /* Texto nítido */
+    color: #0f172a;
+    background-color: #f8fafc;
 }
 
-/* Mejorar las tarjetas */
+/* TARJETAS: Blancas, bordes finos, sombra sutil */
 .card {
-    @apply border border-base-300 shadow-xl bg-base-200;
-    transition: all 0.3s ease;
+    @apply bg-white border border-slate-200 shadow-sm;
 }
-
-/* Efecto Hover sutil en las tarjetas (Opcional: quítalo si no te gusta) */
+/* Al pasar el mouse, sombra un poco más fuerte */
 .card:hover {
-    @apply border-primary shadow-2xl; /* Borde sólido, sin transparencia */
-    transform: translateY(-2px);
+    @apply shadow-md transition-shadow duration-300;
 }
 
-/* Inputs más elegantes */
-input, select, textarea {
-    @apply bg-base-100 border-base-300 focus:border-primary focus:ring-1 focus:ring-primary;
+/* INPUTS y SELECTS: Estilo "Clean" */
+/* Fondo blanco, borde gris, al escribir se pone borde oscuro (Slate 900) */
+input, select, textarea, .input, .select, .textarea {
+    @apply bg-white border-slate-200 text-slate-900 !important;
+    @apply focus:border-slate-900 focus:ring-1 focus:ring-slate-900 focus:outline-none !important;
+    border-radius: 0.35rem; /* Coincidir con botones */
 }
 
-/* Scrollbar Oscuro Personalizado (Solo para Chrome/Edge/Safari) */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* TABLAS: Encabezados sutiles */
+.table :where(thead, tfoot) {
+    @apply bg-slate-50 text-slate-500 uppercase tracking-wider font-bold text-xs;
+    border-bottom: 1px solid #e2e8f0;
 }
-::-webkit-scrollbar-track {
-    background: #0f172a; 
+.table :where(th, td) {
+    @apply border-b border-slate-100;
 }
-::-webkit-scrollbar-thumb {
-    background: #334155; 
-    border-radius: 4px;
+
+/* MODALES (Drawers): Fondo blanco puro */
+.drawer-side > .menu {
+    @apply bg-white border-l border-slate-200;
 }
-::-webkit-scrollbar-thumb:hover {
-    background: #475569; 
+
+/* BOTONES: Texto en negrita */
+.btn {
+    @apply font-bold tracking-wide;
 }

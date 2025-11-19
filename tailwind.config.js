@@ -1,25 +1,26 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
+import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php', // <--- Esto cubre TODAS las carpetas (auth, layouts, livewire)
-        './resources/js/**/*.js',
-        './vendor/robsontenorio/mary/src/View/Components/**/*.php'
+        './resources/views/**/*.blade.php',
+        './vendor/mary-ui/src/View/**/*.php',
+        './app/View/Components/**/*.php'
     ],
 
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Outfit', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans], // Fuente Oficial
             },
         },
     },
 
     plugins: [
-        require('@tailwindcss/forms'),
+        forms,
         require('daisyui'),
     ],
 
@@ -27,39 +28,39 @@ export default {
         themes: [
             {
                 "repair-pro": {
-                    // AZUL CORPORATIVO MODERNO (Más vibrante)
-                    "primary": "#3b82f6",          // Azul principal
-                    "primary-content": "#ffffff",  // Texto sobre azul
+                    // --- ADN CORPORATIVO (ESTILO STRIPE/SHOPIFY) ---
                     
-                    // SECUNDARIO (Para detalles)
-                    "secondary": "#6366f1",        // Índigo
-                    "accent": "#06b6d4",           // Cian (para toques eléctricos)
+                    "primary": "#0f172a",          // Slate 900 (Botones principales oscuros y serios)
+                    "primary-content": "#ffffff",  // Texto blanco en botones
                     
-                    // COLORES DE ESTADO (Más suaves, no tan chillones)
+                    "secondary": "#3b82f6",        // Azul Tech (Para iconos, enlaces y acentos)
+                    "secondary-content": "#ffffff",
+
+                    "accent": "#6366f1",           // Índigo (Detalles extra)
+                    
+                    "neutral": "#f1f5f9",          // Gris muy claro (Fondos de cabeceras)
+                    "neutral-content": "#0f172a",  // Texto oscuro
+
+                    "base-100": "#ffffff",         // BLANCO PURO (Tarjetas, Sidebar, Modales)
+                    "base-200": "#f8fafc",         // GRIS CÁLIDO (Fondo de pantalla)
+                    "base-300": "#e2e8f0",         // BORDES SUTILES (Gris claro)
+                    "base-content": "#334155",     // TEXTO PRINCIPAL (Slate 700 - Legible y elegante)
+
                     "info": "#0ea5e9",
                     "success": "#10b981",
                     "warning": "#f59e0b",
                     "error": "#ef4444",
 
-                    // EL SECRETO: LA BASE OSCURA (Deep Slate)
-                    "neutral": "#1e293b",          // Gris oscuro para elementos neutros
-                    "base-100": "#0f172a",         // Fondo PRINCIPAL (Slate 900)
-                    "base-200": "#1e293b",         // Fondo TARJETAS/SIDEBAR (Slate 800)
-                    "base-300": "#334155",         // Bordes sutiles (Slate 700)
-                    "base-content": "#f1f5f9",     // Texto principal (Casi blanco)
-
-                    // ESTILO DE BORDES (Más moderno)
-                    "--rounded-box": "1rem",       // Tarjetas más redondas
-                    "--rounded-btn": "0.5rem",     // Botones semiredondos
-                    "--rounded-badge": "1.9rem",   // Badges píldora
-                    "--animation-btn": "0.25s",    // Click rápido
-                    "--animation-input": "0.2s",   // Focus rápido
-                    "--btn-focus-scale": "0.95",   // Efecto rebote sutil
-                    "--border-btn": "1px",         // Borde fino
-                    "--tab-border": "1px",
-                    "--tab-radius": "0.5rem",
+                    // FORMAS (Más cuadradas y profesionales)
+                    "--rounded-box": "0.5rem",     // Bordes de tarjetas
+                    "--rounded-btn": "0.35rem",    // Botones más serios (menos redondos)
+                    "--rounded-badge": "1rem",     
+                    "--animation-btn": "0.2s",     // Click rápido
+                    "--btn-focus-scale": "0.98",   // Efecto sutil
+                    "--tab-radius": "0.3rem",
                 },
             },
         ],
+        darkTheme: "repair-pro", // Forzar este tema siempre
     },
 };
