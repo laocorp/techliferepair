@@ -2,72 +2,68 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Traits\BelongsToTenant; // <--- IMPORTANTE: ESTA ES LA LÍNEA CORREGIDA
+use Illuminate\Support\Str;
 
 class RepairOrder extends Model
 {
+    use BelongsToTenant; // <--- Aquí activamos la protección
+
     protected $fillable = [
         'asset_id', 
         'status', 
+        'payment_status',
         'problem_description', 
         'diagnosis_notes', 
         'is_warranty', 
         'total_cost',
         'tracking_token',
-        'payment_status'    
+        'company_id' // Asegúrate de que este campo esté aquí
     ];
 
-    
+    // ... (El resto de tus relaciones y funciones se quedan igual) ...
 
-    // Relación: Una orden pertenece a un Equipo
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
     }
 
-    // Relación: Una orden tiene muchos repuestos (Tabla Pivote)
     public function parts(): BelongsToMany
     {
         return $this->belongsToMany(Part::class)
                     ->withPivot('quantity', 'price')
                     ->withTimestamps();
     }
-
-    // Helper visual para los colores de los estados
+    
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'recibido' => 'info',         // Azul
-            'diagnostico' => 'warning',   // Amarillo
-            'espera_repuestos' => 'error',// Rojo
-            'listo' => 'success',         // Verde
-            'entregado' => 'neutral',     // Gris
+            'recibido' => 'info',
+            'diagnostico' => 'warning',
+            'espera_repuestos' => 'error',
+            'listo' => 'success',
+            'entregado' => 'neutral',
             default => 'primary',
         };
     }
 
-    // Helper para texto bonito del estado
     public function getStatusLabelAttribute(): string
     {
         return ucfirst(str_replace('_', ' ', $this->status));
     }
-    
-    public function technicalReport()
-    {
-        return $this->hasOne(TechnicalReport::class);
-    } 
+
     public function getPaymentColorAttribute(): string
     {
         return match ($this->payment_status) {
-            'pending' => 'error',   // Rojo
-            'paid'    => 'success', // Verde
+            'pending' => 'error',
+            'paid'    => 'success',
             default   => 'neutral',
         };
     }
-    // Generación automática del token al crear
+    
     protected static function booted(): void
     {
         static::creating(function ($order) {

@@ -4,47 +4,56 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- REGLAS GLOBALES DE DISEÑO EMPRESARIAL --- */
+/* --- REGLAS GLOBALES DE DISEÑO EMPRESARIAL v2.5 --- */
 
 body {
     font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased; /* Texto nítido */
+    -webkit-font-smoothing: antialiased;
     color: #0f172a;
-    background-color: #f8fafc;
+    background-color: #f8fafc; /* Fondo gris muy suave */
 }
 
-/* TARJETAS: Blancas, bordes finos, sombra sutil */
+/* TARJETAS: Blancas, limpias, sombra sutil */
 .card {
-    @apply bg-white border border-slate-200 shadow-sm;
+    @apply bg-white border border-slate-200 shadow-sm rounded-xl;
 }
-/* Al pasar el mouse, sombra un poco más fuerte */
 .card:hover {
     @apply shadow-md transition-shadow duration-300;
 }
 
-/* INPUTS y SELECTS: Estilo "Clean" */
-/* Fondo blanco, borde gris, al escribir se pone borde oscuro (Slate 900) */
+/* INPUTS: Estilo limpio */
 input, select, textarea, .input, .select, .textarea {
     @apply bg-white border-slate-200 text-slate-900 !important;
     @apply focus:border-slate-900 focus:ring-1 focus:ring-slate-900 focus:outline-none !important;
-    border-radius: 0.35rem; /* Coincidir con botones */
+    border-radius: 0.35rem;
 }
 
-/* TABLAS: Encabezados sutiles */
+/* TABLAS: Minimalistas */
 .table :where(thead, tfoot) {
     @apply bg-slate-50 text-slate-500 uppercase tracking-wider font-bold text-xs;
     border-bottom: 1px solid #e2e8f0;
 }
 .table :where(th, td) {
-    @apply border-b border-slate-100;
+    @apply border-b border-slate-100 text-sm py-4;
+}
+.table tr:hover td {
+    @apply bg-slate-50/50;
 }
 
-/* MODALES (Drawers): Fondo blanco puro */
-.drawer-side > .menu {
-    @apply bg-white border-l border-slate-200;
+/* BADGES: Estilo píldora */
+.badge {
+    @apply font-bold uppercase tracking-wide text-[10px] py-1 px-2 border-none;
 }
 
 /* BOTONES: Texto en negrita */
 .btn {
-    @apply font-bold tracking-wide;
+    @apply font-bold tracking-wide shadow-sm;
+}
+.btn-primary {
+    @apply bg-slate-900 border-slate-900 hover:bg-slate-800 hover:border-slate-800 text-white;
+}
+
+/* MODALES (Drawers) */
+.drawer-side > .menu {
+    @apply bg-white border-l border-slate-200;
 }

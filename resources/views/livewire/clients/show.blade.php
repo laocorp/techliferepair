@@ -63,6 +63,7 @@ class extends Component {
 }; ?>
 
 <div>
+    <!-- ENCABEZADO CON NAVEGACIÓN -->
     <x-header title="Perfil del Cliente" separator>
         <x-slot:middle class="!justify-start">
             <div class="text-sm breadcrumbs text-gray-500">
@@ -76,8 +77,10 @@ class extends Component {
 
     <div class="grid lg:grid-cols-3 gap-8">
         
+        <!-- COLUMNA IZQUIERDA: DATOS Y RESUMEN -->
         <div class="lg:col-span-1 space-y-6">
             
+            <!-- Tarjeta de Contacto -->
             <x-card class="shadow-xl border-t-4 border-primary">
                 <div class="text-center mb-4">
                     <div class="avatar placeholder mb-2">
@@ -106,6 +109,7 @@ class extends Component {
                     </div>
                 </div>
 
+                <!-- Botón Rápido de WhatsApp -->
                 @if($client->phone)
                     <x-button 
                         label="Contactar Cliente" 
@@ -117,6 +121,7 @@ class extends Component {
                 @endif
             </x-card>
 
+            <!-- Estadísticas Rápidas -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-base-200 p-4 rounded-xl text-center border border-base-300">
                     <div class="text-xs text-gray-500 uppercase font-bold">Inversión Total</div>
@@ -129,9 +134,11 @@ class extends Component {
             </div>
         </div>
 
+        <!-- COLUMNA DERECHA: PESTAÑAS DE INFORMACIÓN -->
         <div class="lg:col-span-2">
             <x-tabs selected="tab-orders">
                 
+                <!-- PESTAÑA 1: HISTORIAL DE ÓRDENES -->
                 <x-tab name="tab-orders" label="Historial de Órdenes" icon="o-clipboard-document-list">
                     <x-card class="mt-4 shadow-xl">
                         <x-table :headers="$this->ordersHeaders()" :rows="$orders" link="/orders/{id}" striped>
@@ -162,10 +169,14 @@ class extends Component {
                     </x-card>
                 </x-tab>
 
+                <!-- PESTAÑA 2: EQUIPOS DEL CLIENTE -->
                 <x-tab name="tab-assets" label="Mis Equipos" icon="o-wrench-screwdriver">
                     <x-card class="mt-4 shadow-xl">
                         <div class="flex justify-end mb-4">
-                            </div>
+                            <!-- Truco: Enviamos el ID del cliente en la URL para que el formulario ya sepa de quién es -->
+                            <!-- Nota: Esto requiere un pequeño ajuste en Assets/Index si quieres que se prellene, 
+                                 pero por ahora solo muestra la lista -->
+                        </div>
 
                         <x-table :headers="$this->assetsHeaders()" :rows="$assets" striped>
                             @scope('cell_serial_number', $asset)

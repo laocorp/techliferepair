@@ -12,69 +12,87 @@
 </head>
 <body class="antialiased">
 
+    <!-- NAV -->
     <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <div class="bg-blue-600 text-white p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.703-.127 1.543.174 2.099.563 2.099.563L15 2.25 8.684 7.812C8.519 9.388 9.207 10.593 10.167 11.264" /></svg>
+                <div class="bg-slate-900 text-white p-2 rounded-lg shadow-md">
+                    <x-icon name="o-wrench-screwdriver" class="w-5 h-5" />
                 </div>
-                <span class="font-bold text-xl tracking-tight">TECHLIFE</span>
+                <span class="font-bold text-xl tracking-tight text-slate-900">TECHLIFE</span>
             </div>
             @if (Route::has('login'))
-                <div class="flex gap-4">
+                <div class="flex gap-4 items-center">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition">Ir al Dashboard →</a>
+                        <a href="{{ url('/dashboard') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900 transition">Ir al Dashboard →</a>
                     @else
-                        <a href="{{ route('login') }}" class="px-5 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition">Iniciar Sesión</a>
+                        <a href="{{ route('login') }}" class="px-5 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">Iniciar Sesión</a>
                     @endauth
                 </div>
             @endif
         </div>
     </nav>
 
-    <div class="relative pt-32 pb-20 lg:pt-48 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+    <!-- HERO SECTION -->
+    <div class="relative pt-32 pb-20 lg:pt-48 overflow-hidden bg-gradient-to-b from-slate-50 to-white">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
             
+            <!-- TEXTO IZQUIERDA -->
             <div>
-                <div class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wide text-blue-600 uppercase bg-blue-50 rounded-full border border-blue-100">
-                    Solución Enterprise v2.0
+                <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs font-bold tracking-wide text-blue-700 uppercase bg-blue-50 rounded-full border border-blue-100">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                    Sistema Operativo v2.0
                 </div>
-                <h1 class="text-5xl lg:text-7xl font-black tracking-tight text-slate-900 mb-6 leading-tight">
-                    Control total <br> de tu taller.
+                <h1 class="text-5xl lg:text-7xl font-black tracking-tight text-slate-900 mb-6 leading-[1.1]">
+                    Gestión total <br> para tu taller.
                 </h1>
                 <p class="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
-                    Software especializado para Centros de Servicio. Gestiona reparaciones, inventario y garantías en una plataforma unificada y segura.
+                    Software especializado para Centros de Servicio. Centraliza reparaciones, controla inventario y automatiza tu facturación en una plataforma segura.
                 </p>
-                <div class="flex gap-4">
-                    <a href="{{ route('login') }}" class="px-8 py-4 text-base font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">
-                        Comenzar Ahora
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{{ route('register') }}" class="px-8 py-4 text-base font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-xl shadow-blue-600/20 text-center">
+                        Comenzar Gratis
                     </a>
-                    <form action="/track/search" method="POST" class="flex items-center">
+                    
+                    <!-- RASTREADOR RÁPIDO (WIDGET) -->
+                    <form action="/track/search" method="POST" class="flex items-center shadow-sm rounded-xl overflow-hidden border border-slate-200 focus-within:ring-2 focus-within:ring-slate-900 transition">
                         @csrf
-                        <input type="text" name="order_number" placeholder="# Orden" class="h-14 px-4 border border-slate-200 rounded-l-xl focus:outline-none focus:border-blue-500 w-32 text-sm">
-                        <button type="submit" class="h-14 px-4 bg-slate-100 border border-slate-200 border-l-0 rounded-r-xl hover:bg-slate-200 font-bold text-slate-600 text-sm">
-                            Rastrear
+                        <div class="pl-4 text-slate-400">
+                            <x-icon name="o-magnifying-glass" class="w-5 h-5" />
+                        </div>
+                        <input type="text" name="order_number" placeholder="Rastrear Orden #" class="h-14 px-3 border-none focus:ring-0 w-40 text-sm bg-white text-slate-900 placeholder-slate-400">
+                        <button type="submit" class="h-14 px-5 bg-slate-50 hover:bg-slate-100 border-l border-slate-200 font-bold text-slate-600 text-sm transition">
+                            Buscar
                         </button>
                     </form>
                 </div>
-                <div class="mt-10 pt-8 border-t border-slate-100 flex gap-8 text-sm font-semibold text-slate-500">
+
+                <div class="mt-12 pt-8 border-t border-slate-200 flex gap-8 text-sm font-semibold text-slate-500">
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <x-icon name="o-check-circle" class="w-5 h-5 text-green-500" />
                         Setup Instantáneo
                     </div>
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Soporte 24/7
+                        <x-icon name="o-shield-check" class="w-5 h-5 text-green-500" />
+                        Datos Encriptados
                     </div>
                 </div>
             </div>
 
-            <div class="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-50">
-                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" alt="Dashboard" class="w-full h-auto opacity-90">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
-                <div class="absolute bottom-8 left-8 right-8 text-white">
-                    <div class="text-sm font-medium opacity-90">Dashboard de Control</div>
-                    <div class="text-2xl font-bold">Monitoreo en tiempo real</div>
+            <!-- IMAGEN DERECHA (VISUAL) -->
+            <div class="relative">
+                <div class="absolute -inset-4 bg-gradient-to-r from-blue-100 to-slate-100 rounded-3xl blur-2xl opacity-50 -z-10"></div>
+                <div class="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-white">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop" alt="Dashboard Preview" class="w-full h-auto object-cover opacity-95">
+                    
+                    <!-- Overlay UI Mockup -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent flex flex-col justify-end p-8">
+                        <div class="text-white">
+                            <div class="text-xs font-bold uppercase tracking-wider mb-1 text-blue-300">Vista Previa</div>
+                            <h3 class="text-2xl font-bold">Panel de Control en Tiempo Real</h3>
+                        </div>
+                    </div>
                 </div>
             </div>
 

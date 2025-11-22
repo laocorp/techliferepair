@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant; // <--- Importar el Trait
 
 class Part extends Model
 {
+    use BelongsToTenant; // <--- Usar el Trait
+
     // Esto permite editar estos campos sin bloqueo
     protected $fillable = [
         'name', 
@@ -14,6 +17,7 @@ class Part extends Model
         'stock_min', 
         'price', 
         'cost', 
-        'location'
+        'location',
+        'company_id'
     ];
 }

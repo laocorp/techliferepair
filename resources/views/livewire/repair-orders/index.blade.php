@@ -4,8 +4,8 @@ use Livewire\Volt\Component;
 use App\Models\RepairOrder;
 use App\Models\Asset;
 use Mary\Traits\Toast;
-use Livewire\Attributes\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Rule;
 
 new 
 #[Layout('layouts.app')]
@@ -14,45 +14,62 @@ class extends Component {
 
     public string $search = '';
     public bool $drawer = false;
-
-    // -- Formulario --
-    #[Rule('required')]
+    
     public ?int $asset_id = null;
-
+    
     #[Rule('required|min:5')]
     public string $problem_description = '';
-
+    
     #[Rule('boolean')]
     public bool $is_warranty = false;
 
-    public function clean(): void
+    public function create(): void
     {
         $this->reset(['drawer', 'asset_id', 'problem_description', 'is_warranty']);
         $this->resetValidation();
+        $this->drawer = true;
     }
-
-public function create(): void
-{
-    $this->clean();
-    $this->drawer = true;
-}
 
     public function save(): void
     {
-        $this->validate();
+        $this->validate([
+            'asset_id' => 'required',
+            'problem_description' => 'required|min:5',
+            'is_warranty' => 'boolean'
+        ]);
+
+        // --- INICIO DE LA CORRECCIÓN DE SEGURIDAD ---
+        $user = auth()->user();
+
+        // Solo verificamos límites si NO es Super Admin
+        if (!$user->is_super_admin) {
+            
+            // Verificar que tenga empresa asignada
+            if (!$user->company) {
+                $this->error('Tu usuario no está vinculado a una empresa. Contacta a soporte.');
+                return;
+            }
+
+            // Ahora sí es seguro verificar el límite
+            if (!$user->company->canCreateOrder()) {
+                $this->error('Límite de órdenes mensuales alcanzado. Actualiza a Plan PRO.');
+                return;
+            }
+        }
+        // --- FIN DE LA CORRECCIÓN ---
 
         RepairOrder::create([
             'asset_id' => $this->asset_id,
             'problem_description' => $this->problem_description,
             'is_warranty' => $this->is_warranty,
-            'status' => 'recibido' // Siempre empieza en Recibido
+            'status' => 'recibido'
         ]);
 
         $this->success('¡Orden de Trabajo creada!');
-        $this->clean();
+        $this->drawer = false;
     }
 
-    // -- Cargar Equipos para el Select (Formato: Marca Modelo - Serial) --
+    // ... resto del código (assets, headers, with) ...
     public function assets(): mixed
     {
         return Asset::with('client')->get()->map(function($asset) {
@@ -78,7 +95,7 @@ public function create(): void
     {
         return [
             'orders' => RepairOrder::query()
-                ->with(['asset.client']) // Carga relaciones anidadas
+                ->with(['asset.client'])
                 ->orderBy('id', 'desc')
                 ->get(),
             'headers' => $this->headers(),
@@ -88,24 +105,21 @@ public function create(): void
 }; ?>
 
 <div>
-    <x-header title="Órdenes de Trabajo" subtitle="Control de reparaciones" separator progress-indicator>
+    <x-header title="Órdenes de Trabajo" subtitle="Control de reparaciones" separator>
         <x-slot:middle class="!justify-end">
             <x-input icon="o-magnifying-glass" placeholder="Buscar..." wire:model.live.debounce="search" />
         </x-slot:middle>
         <x-slot:actions>
-	<x-button icon="o-plus" class="btn-primary" label="Nueva Orden" wire:click="create" />
+            <x-button icon="o-plus" class="btn-primary" label="Nueva Orden" wire:click="create" />
         </x-slot:actions>
     </x-header>
 
     <x-card>
         <x-table :headers="$headers" :rows="$orders" striped link="/orders/{id}">
-            
-            {{-- Columna Personalizada: ID --}}
             @scope('cell_id', $order)
                 <span class="font-black text-primary">OT-{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</span>
             @endscope
 
-            {{-- Columna Personalizada: Equipo (Marca + Modelo + Serial) --}}
             @scope('cell_asset.model', $order)
                 <div class="flex flex-col">
                     <span class="font-bold">{{ $order->asset->brand }} {{ $order->asset->model }}</span>
@@ -113,7 +127,6 @@ public function create(): void
                 </div>
             @endscope
 
-            {{-- Columna Personalizada: Estado con Badge de Color --}}
             @scope('cell_status', $order)
                 <x-badge :value="$order->status_label" :class="'badge-' . $order->status_color" />
                 @if($order->is_warranty)
@@ -121,11 +134,10 @@ public function create(): void
                 @endif
             @endscope
 
-            {{-- Columna Personalizada: Fecha --}}
             @scope('cell_created_at', $order)
                 {{ $order->created_at->format('d/m/Y H:i') }}
             @endscope
-
+            
             <x-slot:empty>
                 <x-icon name="o-clipboard-document-list" label="No hay órdenes activas." />
             </x-slot:empty>
@@ -134,7 +146,6 @@ public function create(): void
 
     <x-drawer wire:model="drawer" title="Nueva Orden de Trabajo" right class="w-full lg:w-1/3">
         <x-form wire:submit="save">
-            
             <x-select 
                 label="Seleccionar Equipo" 
                 icon="o-wrench-screwdriver" 
@@ -154,7 +165,7 @@ public function create(): void
             <x-checkbox label="¿Es reparación por GARANTÍA?" wire:model="is_warranty" />
 
             <x-slot:actions>
-                <x-button label="Cancelar" wire:click="clean" />
+                <x-button label="Cancelar" wire:click="$toggle('drawer')" />
                 <x-button label="Crear Orden" class="btn-primary" type="submit" spinner="save" />
             </x-slot:actions>
         </x-form>

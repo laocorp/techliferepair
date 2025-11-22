@@ -6,29 +6,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // <--- Importante para la relación
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-	'role',
-	'client_id',
+        'role',            // Rol (admin, tech, client)
+        'client_id',       // Si es cliente
+        'company_id',      // A qué empresa pertenece
+        'is_super_admin',  // Si es el dueño del SaaS
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -36,18 +39,26 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_super_admin' => 'boolean',
+    ];
+
+    // --- RELACIONES ---
+
+    // Relación con la Empresa (Tenant)
+    // ESTA ES LA FUNCIÓN QUE FALTABA Y CAUSABA EL ERROR
+    public function company(): BelongsTo
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(Company::class);
     }
-	
+
+    // --- HELPER METHODS (Funciones de ayuda) ---
 
     public function isAdmin(): bool
     {
@@ -58,8 +69,14 @@ class User extends Authenticatable
     {
         return $this->role === 'tech'; // o 'tecnico'
     }
+
     public function isClient(): bool
     {
         return $this->role === 'client';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin;
     }
 }

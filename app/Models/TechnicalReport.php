@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TechnicalReport extends Model
 {
+	use BelongsToTenant;
     protected $fillable = ['repair_order_id', 'checklist', 'photos', 'findings', 'recommendations'];
 
     // Conversión automática de JSON a Array de PHP
