@@ -3,9 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\URL; // <--- Importante
 use Illuminate\Support\Facades\Schema;
 use App\Models\Setting;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,11 +23,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Compartir la variable $settings con TODAS las vistas
-        // Usamos el try-catch o el if para evitar errores si la tabla aun no existe
-       if (Schema::hasTable('settings')) {
-          View::share('settings', Setting::first() ?? new Setting());
-       
-	 }
+        // 🔒 FUERZA BRUTA HTTPS: Vital para Cloudflare Tunnel
+        if(config('app.env') !== 'local') {
+            URL::forceScheme('https');
+        }
+
+        // Compartir configuración global (Tu lógica existente)
+        if (Schema::hasTable('settings')) {
+            View::share('settings', Setting::first() ?? new Setting());
+        }
     }
 }
