@@ -4,56 +4,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- REGLAS GLOBALES DE DISEÑO EMPRESARIAL v2.5 --- */
+/* --- TECHLIFE v5.0 PREMIUM STYLES --- */
 
 body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     color: #0f172a;
-    background-color: #f8fafc; /* Fondo gris muy suave */
+    background-color: #f1f5f9;
 }
 
-/* TARJETAS: Blancas, limpias, sombra sutil */
+/* TARJETAS FLOTANTES */
 .card {
-    @apply bg-white border border-slate-200 shadow-sm rounded-xl;
-}
-.card:hover {
-    @apply shadow-md transition-shadow duration-300;
+    @apply bg-white border border-slate-200/60 shadow-soft rounded-2xl;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* INPUTS: Estilo limpio */
+/* INPUTS DE ALTA GAMA */
 input, select, textarea, .input, .select, .textarea {
-    @apply bg-white border-slate-200 text-slate-900 !important;
-    @apply focus:border-slate-900 focus:ring-1 focus:ring-slate-900 focus:outline-none !important;
-    border-radius: 0.35rem;
+    @apply bg-slate-50 border-slate-200 text-slate-900 font-medium !important;
+    @apply focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 focus:outline-none !important;
+    @apply placeholder-slate-400 !important;
+    border-radius: 0.6rem;
+    height: 3rem;
 }
 
-/* TABLAS: Minimalistas */
-.table :where(thead, tfoot) {
-    @apply bg-slate-50 text-slate-500 uppercase tracking-wider font-bold text-xs;
-    border-bottom: 1px solid #e2e8f0;
+/* TABLAS LIMPIAS */
+.table {
+    @apply w-full text-sm text-left text-slate-600;
 }
-.table :where(th, td) {
-    @apply border-b border-slate-100 text-sm py-4;
+.table thead tr {
+    @apply border-b border-slate-200;
+}
+.table th {
+    @apply py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50/50;
+}
+.table td {
+    @apply py-4 px-4 border-b border-slate-100;
+}
+.table tr:last-child td {
+    border-bottom: none;
 }
 .table tr:hover td {
-    @apply bg-slate-50/50;
+    @apply bg-slate-50 transition-colors;
 }
 
-/* BADGES: Estilo píldora */
+/* BADGES */
 .badge {
-    @apply font-bold uppercase tracking-wide text-[10px] py-1 px-2 border-none;
+    @apply border-0 font-bold text-[10px] tracking-wide px-3 py-1 shadow-sm;
 }
 
-/* BOTONES: Texto en negrita */
+/* BOTONES PRO */
 .btn {
-    @apply font-bold tracking-wide shadow-sm;
+    @apply font-bold tracking-wide normal-case shadow-sm border-0;
+    letter-spacing: 0.01em;
 }
 .btn-primary {
-    @apply bg-slate-900 border-slate-900 hover:bg-slate-800 hover:border-slate-800 text-white;
+    @apply bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20;
 }
 
-/* MODALES (Drawers) */
+/* SIDEBAR & MENÚ */
 .drawer-side > .menu {
-    @apply bg-white border-l border-slate-200;
+    @apply bg-white border-r border-slate-200 p-4;
+}
+.menu li > a {
+    @apply rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 py-3;
+}
+.menu li > a.active {
+    @apply bg-slate-900 text-white shadow-md shadow-slate-900/20;
 }

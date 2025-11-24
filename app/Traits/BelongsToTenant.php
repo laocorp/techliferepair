@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Traits; // <--- FÍJATE BIEN: El namespace es App\Traits
 
 use App\Models\Scopes\TenantScope;
 use App\Models\Company;
@@ -11,20 +11,18 @@ trait BelongsToTenant
 {
     protected static function bootBelongsToTenant(): void
     {
-        // 1. Aplicar el filtro automático (Global Scope)
+        // 1. Al consultar, aplicar el filtro de empresa
         static::addGlobalScope(new TenantScope);
 
-        // 2. Asignar company_id automáticamente al crear
+        // 2. Al crear, asignar automáticamente la empresa del usuario
         static::creating(function ($model) {
-            // Solo si no se ha especificado ya manualmente un company_id
-            if (!$model->company_id) {
-                if (Auth::check() && Auth::user()->company_id) {
-                    $model->company_id = Auth::user()->company_id;
-                }
+            if (!$model->company_id && Auth::check() && Auth::user()->company_id) {
+                $model->company_id = Auth::user()->company_id;
             }
         });
     }
 
+    // Relación estándar para todos los modelos que usen este trait
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

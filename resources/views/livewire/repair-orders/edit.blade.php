@@ -18,12 +18,12 @@ class extends Component {
     #[Rule('required')]
     public string $status = '';
 
-    // ESTA ES LA VARIABLE QUE FALTABA 👇
+    // 👇 AQUÍ ESTABA EL ERROR: FALTABA ESTA LÍNEA 👇
     #[Rule('required')]
-    public string $payment_status = 'pending';
+    public string $payment_status = 'pending'; 
 
     #[Rule('nullable')]
-    public ?string $diagnosis_notes = ''; 
+    public ?string $diagnosis_notes = null; 
 
     #[Rule('nullable|numeric')]
     public ?float $total_cost = null;
@@ -36,7 +36,10 @@ class extends Component {
     public function mount(RepairOrder $repairOrder): void
     {
         $this->repairOrder = $repairOrder;
-        $this->fill($repairOrder); // Esto llena status, payment_status, etc.
+        $this->fill($repairOrder); 
+        
+        // Aseguramos que la variable tenga el valor actual de la base de datos
+        $this->payment_status = $repairOrder->payment_status ?? 'pending';
     }
 
     // --- LÓGICA DE WHATSAPP ---
@@ -68,7 +71,7 @@ class extends Component {
     {
         $this->validate([
             'status' => 'required',
-            'payment_status' => 'required',
+            'payment_status' => 'required', 
             'diagnosis_notes' => 'nullable',
             'total_cost' => 'nullable|numeric'
         ]);
@@ -83,6 +86,7 @@ class extends Component {
         $this->success('¡Orden actualizada correctamente!');
     }
 
+    // Opciones de Estado Técnico
     public function statuses(): array
     {
         return [
@@ -94,11 +98,13 @@ class extends Component {
         ];
     }
 
+    // Cargar lista de repuestos
     public function parts(): mixed
     {
         return Part::orderBy('name')->get();
     }
 
+    // Acción: Agregar Repuesto
     public function addPart(): void
     {
         $this->validate([
@@ -127,6 +133,7 @@ class extends Component {
         $this->reset(['selected_part_id', 'quantity']);
     }
 
+    // Acción: Quitar Repuesto
     public function removePart($partId): void
     {
         $pivot = $this->repairOrder->parts()->where('part_id', $partId)->first()->pivot;
@@ -194,8 +201,10 @@ class extends Component {
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     
+                    <!-- ESTADO TÉCNICO -->
                     <x-select label="Estado Actual" :options="$this->statuses()" wire:model="status" icon="o-arrow-path" />
                     
+                    <!-- ESTADO PAGO (NUEVO) -->
                     <x-select 
                         label="Estado de Pago" 
                         :options="[['id'=>'pending', 'name'=>'Pendiente'], ['id'=>'paid', 'name'=>'Pagado']]" 
@@ -204,6 +213,7 @@ class extends Component {
                         class="text-{{ $payment_status == 'paid' ? 'success' : 'error' }}"
                     />
 
+                    <!-- COSTO TOTAL -->
                     <x-input label="Costo Total ($)" wire:model="total_cost" prefix="$" type="number" step="0.01" hint="Mano de obra + Repuestos" />
                 </div>
 
@@ -259,3 +269,4 @@ class extends Component {
         </x-card>
     </div>
 </div>
+

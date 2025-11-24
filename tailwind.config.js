@@ -17,22 +17,21 @@ export default {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
             },
             colors: {
-                // Paleta personalizada para "repair-pro"
-                primary: {
-                    50: '#eff6ff',
-                    100: '#dbeafe',
-                    500: '#3b82f6', // Azul vibrante principal
-                    600: '#2563eb', // Azul hover
-                    700: '#1d4ed8',
-                    900: '#0f172a', // Slate oscuro para textos/fondos
+                brand: {
+                    50: '#f0f9ff',
+                    100: '#e0f2fe',
+                    500: '#0ea5e9',
+                    600: '#0284c7',
+                    900: '#0c4a6e',
                 },
-                slate: {
-                    50: '#f8fafc', // Fondo principal
-                    100: '#f1f5f9', // Fondo secundario
-                    200: '#e2e8f0', // Bordes suaves
-                    800: '#1e293b', // Texto secundario
-                    900: '#0f172a', // Texto principal
+                dark: {
+                    800: '#1e293b',
+                    900: '#0f172a',
                 }
+            },
+            boxShadow: {
+                'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                'glow': '0 0 15px rgba(14, 165, 233, 0.3)',
             }
         },
     },
@@ -45,37 +44,38 @@ export default {
     daisyui: {
         themes: [
             {
-                "repair-pro": {
-                    "primary": "#0f172a",          // Botones principales oscuros (Slate 900)
+                "techlife-v5": {
+                    "primary": "#0f172a",          // Slate 900
                     "primary-content": "#ffffff",
                     
-                    "secondary": "#3b82f6",        // Azul para acentos e iconos
+                    "secondary": "#3b82f6",        // Azul eléctrico
                     "secondary-content": "#ffffff",
 
-                    "accent": "#6366f1",           // Índigo
+                    "accent": "#0ea5e9",           // Cian
                     
-                    "neutral": "#f1f5f9",          // Gris muy claro (Fondos secundarios)
-                    "neutral-content": "#0f172a",  // Texto oscuro
+                    "neutral": "#f8fafc",          // Gris muy claro
+                    "neutral-content": "#0f172a",
 
-                    "base-100": "#ffffff",         // Fondo BLANCO PURO (Cards, Sidebar)
-                    "base-200": "#f8fafc",         // Fondo GRIS CÁLIDO (Body background)
-                    "base-300": "#e2e8f0",         // Bordes sutiles
-                    "base-content": "#334155",     // Texto principal (Slate 700)
+                    "base-100": "#ffffff",         // Blanco Puro
+                    "base-200": "#f1f5f9",         // Gris Slate muy suave
+                    "base-300": "#e2e8f0",         // Bordes finos
+                    "base-content": "#334155",     // Texto Slate 700
 
                     "info": "#0ea5e9",
                     "success": "#10b981",
                     "warning": "#f59e0b",
                     "error": "#ef4444",
 
-                    "--rounded-box": "0.5rem",     // Bordes sutiles
-                    "--rounded-btn": "0.35rem",    // Botones semiredondos
-                    "--rounded-badge": "1rem",
+                    "--rounded-box": "1rem",
+                    "--rounded-btn": "0.5rem",
+                    "--rounded-badge": "9999px",
+                    
                     "--animation-btn": "0.2s",
                     "--btn-focus-scale": "0.98",
-                    "--tab-radius": "0.3rem",
+                    "--tab-radius": "0.5rem",
                 },
             },
         ],
-        darkTheme: "repair-pro", // Forzamos este tema
+        darkTheme: "techlife-v5",
     },
 };

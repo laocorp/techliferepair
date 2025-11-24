@@ -2,7 +2,7 @@
 
 use Livewire\Volt\Component;
 use App\Models\User;
-use App\Models\Company; // <--- Importante
+use App\Models\Company;
 use Mary\Traits\Toast;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Rule;
@@ -22,11 +22,11 @@ class extends Component {
     #[Rule('nullable|min:8')] public string $password = '';
     #[Rule('required')] public string $role = 'tech';
     
-    // Nuevo campo para asignar empresa (nullable)
+    // Solo para Super Admin
     #[Rule('nullable')] public ?int $company_id = null;
 
     public function mount() {
-        // Permitir entrada a Admin o Super Admin
+        // Solo Admins o Super Admins pueden entrar aquí
         if (!auth()->user()->isAdmin() && !auth()->user()->is_super_admin) {
             abort(403, 'Acceso restringido.');
         }
@@ -39,34 +39,60 @@ class extends Component {
     }
 
     public function edit(User $user): void {
+        // Seguridad: No editar usuarios de otras empresas (si no soy Super Admin)
+        if (!auth()->user()->is_super_admin && $user->company_id !== auth()->user()->company_id) {
+            abort(403);
+        }
+
         $this->my_user = $user;
         $this->name = $user->name;
         $this->email = $user->email;
         $this->role = $user->role;
-        $this->company_id = $user->company_id; // Cargar la empresa actual
+        $this->company_id = $user->company_id;
         $this->password = '';
         $this->drawer = true;
     }
 
+    // --- FUNCIÓN DE ELIMINAR ---
     public function delete(User $user): void {
+        // 1. No te puedes borrar a ti mismo
         if ($user->id === auth()->id()) {
-            $this->error('No puedes eliminarte a ti mismo.');
+            $this->error('No puedes eliminar tu propia cuenta.');
             return;
         }
+
+        // 2. Seguridad: Solo borrar gente de mi empresa (o si soy Super Admin)
+        if (!auth()->user()->is_super_admin && $user->company_id !== auth()->user()->company_id) {
+            $this->error('No tienes permiso para eliminar este usuario.');
+            return;
+        }
+
+        // 3. Ejecutar borrado
         $user->delete();
-        $this->success('Usuario eliminado');
+        $this->success('Usuario eliminado correctamente.');
     }
 
     public function save(): void {
         $this->validate([
-            'name' => 'required|min:3',
-            'email' => 'required|email|unique:users,email,' . ($this->my_user->id ?? 'NULL'),
-            'role' => 'required',
-            'password' => $this->my_user ? 'nullable|min:8' : 'required|min:8',
-            'company_id' => 'nullable'
-        ]);
+    'name' => 'required|min:3',
+    'phone' => 'nullable',
+    // Email único solo en mi empresa
+    'email' => [
+        'nullable', 'email',
+        Rule::unique('clients')->where(function ($query) {
+            return $query->where('company_id', auth()->user()->company_id);
+        })->ignore($this->my_client->id ?? null)
+    ],
+    // Tax ID único solo en mi empresa
+    'tax_id' => [
+        'nullable',
+        Rule::unique('clients')->where(function ($query) {
+            return $query->where('company_id', auth()->user()->company_id);
+        })->ignore($this->my_client->id ?? null)
+    ]
+]);
 
-        // Verificar límites solo si NO es super admin
+        // Verificar límites de plan (Solo si es creación y NO es super admin)
         if (!$this->my_user && !auth()->user()->is_super_admin) {
              if (!auth()->user()->company->canAddUser()) {
                  $this->error('Límite de usuarios alcanzado. Mejora tu plan.');
@@ -80,12 +106,11 @@ class extends Component {
             $data['password'] = Hash::make($this->password);
         }
 
-        // LOGICA DE EMPRESA
+        // Asignación de Empresa
         if (auth()->user()->is_super_admin) {
-            // Si soy Super Admin, asigno la empresa que seleccioné (o NULL)
             $data['company_id'] = $this->company_id;
         } elseif (!$this->my_user) {
-            // Si soy Admin normal y estoy creando, asigno mi propia empresa
+            // Si soy Admin normal, asigno a mi empresa
             $data['company_id'] = auth()->user()->company_id;
         }
 
@@ -106,31 +131,38 @@ class extends Component {
             ['key' => 'role', 'label' => 'Rol'],
         ];
 
-        // Si soy Super Admin, quiero ver de qué empresa son
         if (auth()->user()->is_super_admin) {
-            $headers[] = ['key' => 'company.name', 'label' => 'Empresa Asignada'];
+            $headers[] = ['key' => 'company.name', 'label' => 'Empresa'];
         }
 
         return $headers;
     }
 
     public function with(): array {
+        $query = User::with('company');
+
+        // Filtro de seguridad para no mezclar empresas
+        if (!auth()->user()->is_super_admin) {
+            $query->where('company_id', auth()->user()->company_id);
+        }
+
+        $query->where('name', 'like', "%$this->search%");
+
         return [
-            'users' => User::with('company')->where('name', 'like', "%$this->search%")->orderBy('id', 'desc')->get(),
+            'users' => $query->orderBy('id', 'desc')->get(),
             'headers' => $this->headers(),
             'roles' => [
                 ['id' => 'admin', 'name' => 'Administrador'], 
                 ['id' => 'tech', 'name' => 'Técnico'],
-                ['id' => 'client', 'name' => 'Cliente (Portal)']
+                // ['id' => 'client', 'name' => 'Cliente (Portal)'] // Opcional mostrar clientes aquí
             ],
-            // Cargar lista de empresas solo si soy Super Admin
             'companies' => auth()->user()->is_super_admin ? Company::orderBy('name')->get() : []
         ];
     }
 }; ?>
 
 <div>
-    <x-header title="Usuarios" subtitle="Gestión de accesos y personal" separator>
+    <x-header title="Equipo de Trabajo" subtitle="Administra tus técnicos y accesos" separator>
         <x-slot:middle class="!justify-end">
             <x-input icon="o-magnifying-glass" placeholder="Buscar..." wire:model.live.debounce="search" />
         </x-slot:middle>
@@ -142,7 +174,6 @@ class extends Component {
     <x-card>
         <x-table :headers="$headers" :rows="$users" striped @row-click="$wire.edit($event.detail.id)" class="cursor-pointer">
             
-            {{-- Badge de Rol --}}
             @scope('cell_role', $user)
                 @if($user->is_super_admin)
                     <span class="badge badge-primary font-bold bg-purple-600 text-white border-none">SUPER ADMIN</span>
@@ -155,23 +186,32 @@ class extends Component {
                 @endif
             @endscope
 
-            {{-- Badge de Empresa (Solo visible para Super Admin por los headers) --}}
             @scope('cell_company.name', $user)
-                @if($user->company)
-                    <span class="font-bold text-slate-700">{{ $user->company->name }}</span>
-                @else
-                    <span class="text-red-400 text-xs italic">Sin Asignar (Huérfano)</span>
-                @endif
+                <span class="font-bold text-slate-700">{{ $user->company->name ?? '-' }}</span>
             @endscope
 
-            {{-- Acciones --}}
+            {{-- BOTÓN DE ELIMINAR --}}
             @scope('actions', $user)
                 <div class="flex" onclick="event.stopPropagation()">
-                    <x-button icon="o-trash" spinner class="btn-sm btn-ghost text-error" wire:click="delete({{ $user->id }})" confirm="¿Eliminar usuario definitivamente?" />
+                    <x-button 
+                        icon="o-trash" 
+                        spinner 
+                        class="btn-sm btn-ghost text-error hover:bg-red-50" 
+                        wire:click="delete({{ $user->id }})" 
+                        confirm="¿Estás seguro de eliminar a {{ $user->name }}? Esta acción no se puede deshacer." 
+                        tooltip="Eliminar Usuario"
+                    />
                 </div>
             @endscope
 
         </x-table>
+        
+        <x-slot:empty>
+            <div class="text-center py-10 text-slate-400">
+                <x-icon name="o-users" class="w-12 h-12 mx-auto mb-2 opacity-50" />
+                No hay usuarios registrados en tu equipo.
+            </div>
+        </x-slot:empty>
     </x-card>
 
     <!-- DRAWER -->
@@ -179,22 +219,14 @@ class extends Component {
         <x-form wire:submit="save">
             
             <x-input label="Nombre" wire:model="name" icon="o-user" />
-            <x-input label="Email" wire:model="email" icon="o-envelope" />
+            <x-input label="Email" wire:model="email" icon="o-envelope" type="email" />
             
             <x-select label="Rol" :options="$roles" wire:model="role" icon="o-shield-check" />
 
-            {{-- SELECTOR DE EMPRESA (SOLO SUPER ADMIN) --}}
             @if(auth()->user()->is_super_admin)
                 <div class="bg-purple-50 p-4 rounded-lg border border-purple-100 my-2">
                     <div class="text-xs font-bold text-purple-800 uppercase mb-2">Zona Super Admin</div>
-                    <x-select 
-                        label="Asignar a Empresa" 
-                        :options="$companies" 
-                        wire:model="company_id" 
-                        icon="o-building-office-2" 
-                        placeholder="Selecciona una empresa..."
-                        hint="El usuario pertenecerá a este taller"
-                    />
+                    <x-select label="Empresa" :options="$companies" wire:model="company_id" icon="o-building-office-2" />
                 </div>
             @endif
 

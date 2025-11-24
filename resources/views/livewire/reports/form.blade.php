@@ -34,8 +34,8 @@ class extends Component {
         'Manómetros / Válvulas' => 'no_aplica',
         'Nivel de Aceite' => 'no_aplica'
     ];
- 
-    #[Rule(['new_photos.*' => 'image|max:5120'])]
+
+    #[Rule(['new_photos.*' => 'image|max:5120'])] 
     public $new_photos = [];
     public $existing_photos = [];
 
@@ -72,7 +72,8 @@ class extends Component {
         if ($this->report) {
             $this->report->update($data);
         } else {
-            TechnicalReport::create(array_merge(['repair_order_id' => $this->order->id], $data));
+            // CORRECCIÓN: Asignamos el reporte recién creado a la variable pública
+            $this->report = TechnicalReport::create(array_merge(['repair_order_id' => $this->order->id], $data));
         }
 
         $this->success('Informe Técnico Guardado');
@@ -92,15 +93,22 @@ class extends Component {
     }
 }; ?>
 
-<div> {{-- <--- ESTE ES EL DIV "ROOT" OBLIGATORIO QUE SEGURAMENTE FALTABA --}}
+<div> 
     
     <div class="max-w-5xl mx-auto">
         <x-header title="Informe Técnico" subtitle="Orden #{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }} - {{ $order->asset->brand }} {{ $order->asset->model }}" separator>
             <x-slot:actions>
-                <x-button label="Volver a la Orden" icon="o-arrow-left" link="/orders/{{ $order->id }}" />
+                <x-button label="Volver" icon="o-arrow-left" link="/orders/{{ $order->id }}" />
                 
+                {{-- BOTÓN DE DESCARGAR PDF (Se activa al guardar) --}}
                 @if($report)
-                     <x-button label="Imprimir Informe" icon="o-printer" class="btn-warning" link="/orders/{{ $order->id }}/report-pdf" external />
+                     <x-button 
+                        label="Descargar PDF" 
+                        icon="o-printer" 
+                        class="btn-warning text-white" 
+                        link="{{ route('reports.print', $order->id) }}" 
+                        external 
+                     />
                 @endif
     
                 <x-button label="Guardar Informe" icon="o-check" class="btn-primary" wire:click="save" spinner="save" />
@@ -109,6 +117,7 @@ class extends Component {
     
         <div class="grid lg:grid-cols-2 gap-8">
             
+            <!-- COLUMNA IZQUIERDA: TEXTOS -->
             <div class="space-y-6">
                 <x-card title="Diagnóstico y Solución" class="shadow-xl">
                     <x-textarea 
@@ -127,8 +136,10 @@ class extends Component {
                 </x-card>
             </div>
     
+            <!-- COLUMNA DERECHA: CHECKLIST Y FOTOS -->
             <div class="space-y-6">
                 
+                <!-- CHECKLIST -->
                 <x-card title="Checklist de Estado" class="shadow-xl">
                     <div class="grid grid-cols-1 gap-2">
                         @foreach($checklist_items as $key => $value)
@@ -145,10 +156,13 @@ class extends Component {
                     </div>
                 </x-card>
     
+                <!-- EVIDENCIA FOTOGRÁFICA -->
                 <x-card title="Evidencia Fotográfica" class="shadow-xl">
                     
+                    <!-- Input de Archivo -->
                     <x-file wire:model="new_photos" label="Subir Fotos" accept="image/*" multiple icon="o-camera" />
     
+                    <!-- Galería -->
                     @if(!empty($existing_photos) || !empty($new_photos))
                         <div class="grid grid-cols-3 gap-2 mt-4">
                             
@@ -176,4 +190,4 @@ class extends Component {
         </div>
     </div>
 
-</div> {{-- <--- CIERRE DEL DIV ROOT --}}
+</div>

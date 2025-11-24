@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Traits\BelongsToTenant; // <--- IMPORTANTE: ESTA ES LA LÍNEA CORREGIDA
+use Illuminate\Database\Eloquent\Relations\HasOne; // <--- Importar esto
+use App\Traits\BelongsToTenant;
 use Illuminate\Support\Str;
 
 class RepairOrder extends Model
 {
-    use BelongsToTenant; // <--- Aquí activamos la protección
+    use BelongsToTenant; 
 
     protected $fillable = [
         'asset_id', 
@@ -21,11 +22,11 @@ class RepairOrder extends Model
         'is_warranty', 
         'total_cost',
         'tracking_token',
-        'company_id' // Asegúrate de que este campo esté aquí
+        'company_id',
+        'ticket_number'
     ];
 
-    // ... (El resto de tus relaciones y funciones se quedan igual) ...
-
+    // ... (tus otras relaciones asset y parts) ...
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
@@ -37,9 +38,19 @@ class RepairOrder extends Model
                     ->withPivot('quantity', 'price')
                     ->withTimestamps();
     }
-    
+
+    // 👇👇👇 ESTA ES LA RELACIÓN QUE FALTABA 👇👇👇
+    // Una orden tiene un (HasOne) Informe Técnico
+    public function technicalReport(): HasOne
+    {
+        return $this->hasOne(TechnicalReport::class);
+    }
+    // 👆👆👆 ---------------------------------- 👆👆👆
+
+    // ... (resto de tus accessors y booted) ...
     public function getStatusColorAttribute(): string
     {
+        // ... código existente ...
         return match ($this->status) {
             'recibido' => 'info',
             'diagnostico' => 'warning',
@@ -66,8 +77,25 @@ class RepairOrder extends Model
     
     protected static function booted(): void
     {
+        static::bootBelongsToTenant();
+
         static::creating(function ($order) {
             $order->tracking_token = (string) Str::uuid();
+
+            if (!$order->ticket_number) {
+                $company = null;
+                if (auth()->check() && auth()->user()->company) {
+                    $company = auth()->user()->company;
+                } 
+                
+                if ($company) {
+                    $initial = strtoupper(substr($company->name, 0, 1));
+                    $count = RepairOrder::where('company_id', $company->id)->count() + 1;
+                    $order->ticket_number = $initial . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                } else {
+                    $order->ticket_number = 'G-' . str_pad(RepairOrder::count() + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
         });
     }
 }

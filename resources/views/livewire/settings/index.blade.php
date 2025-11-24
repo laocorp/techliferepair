@@ -28,7 +28,8 @@ class extends Component {
 
     public function mount(): void
     {
-        // 🔒 SEGURIDAD: Si no es admin, prohibir la entrada
+        // 🔒 SEGURIDAD BLINDADA:
+        // Si el usuario NO es admin, abortamos con un error 403 (Prohibido)
         if (!auth()->user()->isAdmin()) {
             abort(403, '⛔ ACCESO DENEGADO: Solo administradores.');
         }

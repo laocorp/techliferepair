@@ -15,38 +15,26 @@ use App\Http\Controllers\Auth\LogoutController;
 // Página de Inicio (Landing Page)
 Route::view('/', 'welcome');
 
-// Legal y Documentación
-Volt::route('/legal', 'legal.index')->name('legal');
-
-// Pantalla de Bloqueo por Suscripción
-Route::view('/subscription-locked', 'subscription.locked')->name('subscription.locked');
-
-// Rastreo por QR (Enlace directo)
+// 1. Ruta para ver el estado de la orden (QR)
 Volt::route('/track/{token}', 'tracking.show')->name('track.status');
 
-// Lógica del Buscador de Orden (Landing Page)
+// 2. Lógica del buscador de la portada
 Route::post('/track/search', function (Request $request) {
-    $search = $request->input('order_number');
+    $orderNumber = $request->input('order_number');
     
-    // 1. Buscar por el Nuevo Código (Ticket Number) - Ej: T-0001
-    $order = RepairOrder::where('ticket_number', $search)->first();
+    // Intentar buscar por ID numérico
+    $order = RepairOrder::find(intval($orderNumber));
 
-    // 2. Si no encuentra, buscar por ID numérico (Legacy)
-    if (!$order && is_numeric($search)) {
-        $order = RepairOrder::find(intval($search));
-    }
-
-    // 3. Si no encuentra, buscar por Token (QR)
+    // Si no encuentra por ID, intentar buscar por Token (por si acaso pegan el token)
     if (!$order) {
-        $order = RepairOrder::where('tracking_token', $search)->first();
+        $order = RepairOrder::where('tracking_token', $orderNumber)->first();
     }
 
-    // Si encontramos la orden, redirigir al tracking
     if ($order && $order->tracking_token) {
         return redirect()->route('track.status', $order->tracking_token);
     }
 
-    return back()->with('error', 'Orden no encontrada. Verifique el código (Ej: T-0001).');
+    return back()->with('error', 'Orden no encontrada. Verifique el número.');
 });
 
 // ==========================================
@@ -55,25 +43,22 @@ Route::post('/track/search', function (Request $request) {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Dashboard Principal
+    // Dashboard
     Volt::route('/dashboard', 'dashboard.index')->name('dashboard');
 
-    // Perfil de Usuario
+    // Perfil (Breeze)
     Route::view('profile', 'profile')->name('profile');
 
-    // --- MÓDULOS OPERATIVOS ---
-    
-    // Clientes
+    // Módulos Principales
     Volt::route('/clients', 'clients.index')->name('clients');
-    Volt::route('/clients/{client}', 'clients.show')->name('clients.show'); // Perfil 360
+    Volt::route('/clients/{client}', 'clients.show')->name('clients.show'); // Perfil de Cliente
     
-    // Equipos y Repuestos
     Volt::route('/assets', 'assets.index')->name('assets');
     Volt::route('/parts', 'parts.index')->name('parts');
 
     // Gestión de Órdenes
     Volt::route('/orders', 'repair-orders.index')->name('orders');
-    Volt::route('/orders/{repairOrder}', 'repair-orders.edit')->name('orders.edit'); // Mesa de trabajo
+    Volt::route('/orders/{repairOrder}', 'repair-orders.edit')->name('orders.edit');
     Route::get('/orders/{order}/print', [PdfController::class, 'printOrder'])->name('orders.print');
 
     // Informes Técnicos
@@ -85,24 +70,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Punto de Venta (POS) y Ventas
     Volt::route('/pos', 'pos.index')->name('pos');
-    Volt::route('/sales', 'sales.index')->name('sales.index'); // Historial de Ventas
+    Volt::route('/sales', 'sales.index')->name('sales.index');
     Route::get('/pos/ticket/{sale}', [PdfController::class, 'printTicket'])->name('pos.print');
 
     // Portal de Cliente (Solo para rol 'client')
     Volt::route('/my-portal', 'client-portal.index')->name('client.portal');
 
-    // --- ADMINISTRACIÓN ---
+    // Usuarios (Gestión de Equipo)
     Volt::route('/users', 'users.index')->name('users');
 
-    // Configuración (Protegida internamente en el componente)
-    Volt::route('/settings', 'settings.index')->name('settings');
+    // --- CONFIGURACIÓN (SOLO ADMIN) ---
+    // Usamos Volt::route directamente con un middleware en línea para protegerlo
+    Volt::route('/settings', 'settings.index')
+        ->middleware(function ($request, $next) {
+            if (!auth()->user()->isAdmin()) {
+                abort(403, '⛔ ACCESO DENEGADO: Solo administradores.');
+            }
+            return $next($request);
+        })
+        ->name('settings');
         
-    // --- SUPER ADMIN SAAS ---
+    // --- GESTIÓN SAAS (SOLO SUPER ADMIN) ---
     Volt::route('/super/plans', 'super.plans')->name('super.plans');
     Volt::route('/super/companies', 'super.companies')->name('super.companies');
 
-    // Cerrar Sesión (Soporta GET y POST para evitar errores)
-    Route::any('/logout', LogoutController::class)->name('logout');
+    // Salir
+    Route::get('/logout', LogoutController::class)->name('logout');
 
 }); 
 

@@ -4,13 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\BelongsToTenant; // <--- IMPORTANTE: Debe decir App\Traits
 
 class TechnicalReport extends Model
 {
-	use BelongsToTenant;
-    protected $fillable = ['repair_order_id', 'checklist', 'photos', 'findings', 'recommendations'];
+    use BelongsToTenant; // <--- Usar el Trait para protección SaaS
 
-    // Conversión automática de JSON a Array de PHP
+    protected $fillable = [
+        'repair_order_id', 
+        'checklist', 
+        'photos', 
+        'findings', 
+        'recommendations',
+        'company_id' // <--- No olvides agregar esto
+    ];
+
+    // Casts para JSON
     protected $casts = [
         'checklist' => 'array',
         'photos' => 'array',
