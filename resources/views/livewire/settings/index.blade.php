@@ -13,29 +13,30 @@ class extends Component {
 
     public Setting $setting;
 
-    #[Rule('required')]
-    public string $company_name = '';
-    #[Rule('nullable')]
-    public string $company_address = '';
-    #[Rule('nullable')]
-    public string $company_phone = '';
-    #[Rule('nullable|email')]
-    public string $company_email = '';
-    #[Rule('nullable')]
-    public string $tax_id = '';
-    #[Rule('nullable')]
-    public string $warranty_text = '';
+    #[Rule('required')] public string $company_name = '';
+    #[Rule('nullable')] public string $company_address = '';
+    #[Rule('nullable')] public string $company_phone = '';
+    #[Rule('nullable|email')] public string $company_email = '';
+    #[Rule('nullable')] public string $tax_id = '';
+    #[Rule('nullable')] public string $warranty_text = '';
+    
+    // NUEVOS CAMPOS FINANCIEROS
+    #[Rule('required')] public string $currency_symbol = '$';
+    #[Rule('required')] public string $tax_name = 'IVA';
+    #[Rule('required|numeric|min:0|max:100')] public float $tax_rate = 0;
 
     public function mount(): void
     {
-        // 🔒 SEGURIDAD BLINDADA:
-        // Si el usuario NO es admin, abortamos con un error 403 (Prohibido)
         if (!auth()->user()->isAdmin()) {
-            abort(403, '⛔ ACCESO DENEGADO: Solo administradores.');
+            abort(403, '⛔ ACCESO DENEGADO');
         }
 
-        // Cargar configuración
-        $this->setting = Setting::first() ?? new Setting();
+        // Usar firstOrCreate para asegurar que exista registro para esta empresa
+        $this->setting = Setting::firstOrCreate(
+            ['company_id' => auth()->user()->company_id],
+            ['company_name' => 'Mi Empresa']
+        );
+        
         $this->fill($this->setting);
     }
 
@@ -43,52 +44,66 @@ class extends Component {
     {
         $this->validate();
         
-        $this->setting->fill([
+        $this->setting->update([
             'company_name' => $this->company_name,
             'company_address' => $this->company_address,
             'company_phone' => $this->company_phone,
             'company_email' => $this->company_email,
             'tax_id' => $this->tax_id,
             'warranty_text' => $this->warranty_text,
-        ])->save();
+            'currency_symbol' => $this->currency_symbol,
+            'tax_name' => $this->tax_name,
+            'tax_rate' => $this->tax_rate,
+        ]);
 
-        $this->success('¡Configuración actualizada!');
+        $this->success('Configuración actualizada');
     }
 }; ?>
 
 <div>
-    <x-header title="Configuración de Empresa" subtitle="Personaliza tu marca y documentos" separator />
+    <x-header title="Configuración de Empresa" subtitle="Personaliza tu marca y finanzas" separator>
+        <x-slot:actions>
+            <x-button label="Guardar Todo" class="btn-primary" wire:click="save" spinner="save" icon="o-check" />
+        </x-slot:actions>
+    </x-header>
 
     <div class="grid lg:grid-cols-2 gap-8">
-        <x-card title="Datos Generales" class="shadow-xl">
-            <x-form wire:submit="save">
-                <x-input label="Nombre de la Empresa" wire:model="company_name" icon="o-building-office" />
-                <x-input label="Dirección" wire:model="company_address" icon="o-map-pin" />
+        
+        <!-- DATOS GENERALES -->
+        <x-card title="Identidad del Negocio" class="shadow-sm border border-slate-200">
+            <div class="space-y-4">
+                <x-input label="Nombre Comercial" wire:model="company_name" icon="o-building-office" />
                 <div class="grid grid-cols-2 gap-4">
-                    <x-input label="Teléfono" wire:model="company_phone" icon="o-phone" />
                     <x-input label="RUC / ID Fiscal" wire:model="tax_id" icon="o-identification" />
+                    <x-input label="Teléfono" wire:model="company_phone" icon="o-phone" />
                 </div>
+                <x-input label="Dirección" wire:model="company_address" icon="o-map-pin" />
                 <x-input label="Email de Contacto" wire:model="company_email" icon="o-envelope" />
-                
-                <x-textarea 
-                    label="Texto de Garantía (Para el PDF)" 
-                    wire:model="warranty_text" 
-                    hint="Aparecerá al pie de las órdenes de trabajo"
-                    rows="3" 
-                />
-
-                <x-slot:actions>
-                    <x-button label="Guardar Configuración" class="btn-primary" type="submit" spinner="save" icon="o-check" />
-                </x-slot:actions>
-            </x-form>
-        </x-card>
-
-        <x-card title="Vista Previa en Documentos" class="bg-base-200">
-            <div class="text-center p-5 bg-white text-black rounded shadow">
-                <h1 class="text-2xl font-black uppercase">{{ $company_name ?: 'NOMBRE EMPRESA' }}</h1>
-                <p class="text-xs text-gray-500">{{ $company_address }}</p>
-                <p class="text-xs text-gray-500">Tel: {{ $company_phone }} | {{ $company_email }}</p>
             </div>
         </x-card>
+
+        <div class="space-y-8">
+            <!-- DATOS FINANCIEROS (NUEVO) -->
+            <x-card title="Configuración Fiscal" class="shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
+                <div class="grid grid-cols-3 gap-4">
+                    <x-input label="Símbolo Moneda" wire:model="currency_symbol" placeholder="$" />
+                    <x-input label="Nombre Impuesto" wire:model="tax_name" placeholder="IVA" />
+                    <x-input label="% Tasa" wire:model="tax_rate" type="number" suffix="%" />
+                </div>
+                <p class="text-xs text-slate-500 mt-2">
+                    Ejemplo: Si configuras 12%, el sistema calculará: Subtotal + 12% = Total.
+                </p>
+            </x-card>
+
+            <!-- GARANTÍA -->
+            <x-card title="Términos Legales" class="shadow-sm border border-slate-200">
+                <x-textarea 
+                    label="Texto de Garantía (Pie de página PDF)" 
+                    wire:model="warranty_text" 
+                    rows="4" 
+                />
+            </x-card>
+        </div>
+
     </div>
 </div>

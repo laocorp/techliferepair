@@ -107,34 +107,48 @@ class extends Component {
         ];
     }
 
-    public function with(): array
-    {
-        $isAdmin = auth()->user()->isAdmin();
+	public function with(): array
+{
+    $isAdmin = auth()->user()->isAdmin();
+    $companyId = auth()->user()->company_id;
 
+    // CACHÉ: Guardamos estadísticas por 600 segundos (10 min)
+    // Clave única por empresa para no mezclar datos
+    $stats = \Illuminate\Support\Facades\Cache::remember("dashboard_stats_{$companyId}", 600, function () use ($isAdmin) {
         $repairRevenue = RepairOrder::whereIn('status', ['listo', 'entregado'])
             ->whereMonth('created_at', now()->month)
             ->sum('total_cost');
-            
+        
         $posRevenue = 0;
         if (Schema::hasTable('sales')) {
             $posRevenue = Sale::whereMonth('created_at', now()->month)->sum('total');
         }
 
         return [
-            'revenue_month' => $isAdmin ? ($repairRevenue + $posRevenue) : 0,
-            'active_orders' => RepairOrder::where('status', '!=', 'entregado')->count(),
-            'total_clients' => Client::count(),
-            'low_stock_parts' => Part::whereColumn('stock', '<=', 'stock_min')->count(),
-            'latest_orders' => RepairOrder::with(['asset.client'])->latest()->take(5)->get(),
-            'maintenance_alerts' => RepairOrder::query()
-                ->with(['asset.client'])
-                ->where('status', 'entregado')
-                ->whereDate('updated_at', '<=', now()->subMonths(3))
-                ->latest()->take(5)->get(),
-            'headers' => $this->headers(),
-            'maintenance_headers' => $this->maintenanceHeaders()
+            'revenue' => $isAdmin ? ($repairRevenue + $posRevenue) : 0,
+            'active' => RepairOrder::where('status', '!=', 'entregado')->count(),
+            'clients' => Client::count(),
+            'stock' => Part::whereColumn('stock', '<=', 'stock_min')->count(),
         ];
-    }
+    });
+
+    // Las listas NO se cachean para mostrar movimiento en tiempo real
+    return [
+        'revenue_month' => $stats['revenue'],
+        'active_orders' => $stats['active'],
+        'total_clients' => $stats['clients'],
+        'low_stock_parts' => $stats['stock'],
+        'latest_orders' => RepairOrder::with(['asset.client'])->latest()->take(5)->get(),
+        'maintenance_alerts' => RepairOrder::query()
+            ->with(['asset.client'])
+            ->where('status', 'entregado')
+            ->whereDate('updated_at', '<=', now()->subMonths(3))
+            ->latest()->take(5)->get(),
+        'headers' => $this->headers(),
+        'maintenance_headers' => $this->maintenanceHeaders()
+    ];
+}
+
 
     public function headers(): array
     {
