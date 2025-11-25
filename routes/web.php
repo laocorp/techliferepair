@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Punto de Venta (POS) y Ventas
     Volt::route('/pos', 'pos.index')->name('pos');
+    Volt::route('/cash', 'cash.index')->name('cash.index');
     Volt::route('/sales', 'sales.index')->name('sales.index'); // Historial de Ventas
     Route::get('/pos/ticket/{sale}', [PdfController::class, 'printTicket'])->name('pos.print');
 

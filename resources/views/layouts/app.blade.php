@@ -90,6 +90,8 @@
                     <x-menu-item title="Órdenes" icon="o-clipboard-document-list" link="/orders" />
                     <x-menu-item title="Tablero Visual" icon="o-rectangle-group" link="/kanban" />
                     <x-menu-item title="Punto de Venta" icon="o-shopping-cart" link="/pos" />
+		    <x-menu-item title="Caja / Turnos" icon="o-calculator" link="/cash" class="hover:bg-slate-100 hover:text-slate-900 rounded-md" />
+
                     <!-- NUEVO BOTÓN -->
                     <x-menu-item title="Historial Ventas" icon="o-banknotes" link="/sales" />
                     
