@@ -3,23 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\BelongsToTenant; // Importante para SaaS
+use App\Traits\BelongsToTenant;
 
 class Sale extends Model
 {
     use BelongsToTenant; 
 
-    protected $fillable = ['company_id', 'user_id', 'total', 'payment_method'];
+    protected $fillable = [
+        'company_id', 
+        'user_id', 
+        'client_id', // <--- NUEVO CAMPO
+        'total', 
+        'payment_method'
+    ];
 
-    // Relación con los items
     public function items()
     {
         return $this->hasMany(SaleItem::class);
     }
 
-    // Relación con el usuario que vendió
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Nueva relación con Cliente
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

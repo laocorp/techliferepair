@@ -5,7 +5,7 @@ use App\Models\Part;
 use Mary\Traits\Toast;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Rule;
-use Illuminate\Validation\Rule as ValidationRule; // <--- IMPORTANTE: Agregar esto
+use Illuminate\Validation\Rule as ValidationRule;
 
 new 
 #[Layout('layouts.app')]
@@ -15,17 +15,19 @@ class extends Component {
     public string $search = '';
     public bool $drawer = false;
     public ?Part $my_part = null;
+    
+    // Variables para historial
+    public $part_history = [];
 
     #[Rule('required|min:3')] public string $name = '';
-    // Quitamos la regla simple de aquí para validarla manualmente abajo
-    public string $sku = ''; 
+    public string $sku = '';
     #[Rule('required|integer|min:0')] public int $stock = 0;
     #[Rule('required|numeric|min:0')] public float $price = 0;
     #[Rule('nullable')] public float $cost = 0;
     #[Rule('nullable')] public string $location = '';
 
     public function create(): void {
-        $this->reset(['drawer', 'my_part', 'name', 'sku', 'stock', 'price', 'cost', 'location']);
+        $this->reset(['drawer', 'my_part', 'name', 'sku', 'stock', 'price', 'cost', 'location', 'part_history']);
         $this->resetValidation();
         $this->drawer = true;
     }
@@ -38,18 +40,20 @@ class extends Component {
         $this->price = $part->price;
         $this->cost = $part->cost ?? 0;
         $this->location = $part->location ?? '';
+        
+        // Cargar historial
+        $this->part_history = $part->history()->with('user')->take(10)->get();
+        
         $this->drawer = true;
     }
 
     public function save(): void {
-        // Validación Multitenant Inteligente
         $this->validate([
-            'name' => 'required|min:3',
-            'stock' => 'required|integer|min:0',
-            'price' => 'required|numeric|min:0',
+            'name' => 'required',
+            'stock' => 'required',
+            'price' => 'required',
             'sku' => [
                 'required',
-                // Validar que el SKU sea único SOLO dentro de mi empresa
                 ValidationRule::unique('parts')
                     ->where('company_id', auth()->user()->company_id)
                     ->ignore($this->my_part->id ?? null)
@@ -66,10 +70,21 @@ class extends Component {
         ];
 
         if ($this->my_part) {
+            // Detectar cambios para el historial
+            $changes = [];
+            if ($this->my_part->stock != $this->stock) $changes[] = "Stock: {$this->my_part->stock} -> {$this->stock}";
+            if ($this->my_part->price != $this->price) $changes[] = "Precio: {$this->my_part->price} -> {$this->price}";
+            
             $this->my_part->update($data);
+            
+            if (!empty($changes)) {
+                $this->my_part->logChange('actualizacion', implode(', ', $changes));
+            }
+            
             $this->success('Producto actualizado');
         } else {
-            Part::create($data);
+            $part = Part::create($data);
+            $part->logChange('creacion', "Producto creado con stock inicial: {$this->stock}");
             $this->success('Producto creado');
         }
         $this->drawer = false;
@@ -107,7 +122,9 @@ class extends Component {
         <x-table :headers="$headers" :rows="$parts" striped @row-click="$wire.edit($event.detail.id)" class="cursor-pointer hover:bg-slate-50">
             
             @scope('cell_sku', $part)
-                <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{{ $part->sku }}</span>
+                <div class="flex items-center gap-2">
+                    <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{{ $part->sku }}</span>
+                </div>
             @endscope
 
             @scope('cell_name', $part)
@@ -115,7 +132,7 @@ class extends Component {
             @endscope
 
             @scope('cell_stock', $part)
-                @if($part->stock <= 5)
+                @if($part->stock <= $part->stock_min)
                     <span class="text-red-600 font-black bg-red-50 px-2 py-1 rounded border border-red-100">{{ $part->stock }}</span>
                 @else
                     <span class="text-slate-700 font-bold">{{ $part->stock }}</span>
@@ -124,6 +141,12 @@ class extends Component {
 
             @scope('cell_price', $part)
                 <span class="text-slate-900 font-bold">${{ number_format($part->price, 2) }}</span>
+            @endscope
+            
+            @scope('actions', $part)
+                <div onclick="event.stopPropagation()">
+                    <x-button icon="o-printer" link="{{ route('parts.label', $part->id) }}" external class="btn-sm btn-ghost text-slate-400 hover:text-blue-600" tooltip="Imprimir Etiqueta" />
+                </div>
             @endscope
 
             <x-slot:empty>
@@ -136,30 +159,76 @@ class extends Component {
     </x-card>
 
     <x-drawer wire:model="drawer" title="{{ $my_part ? 'Editar Producto' : 'Nuevo Producto' }}" right class="w-full lg:w-1/3">
-        <x-form wire:submit="save" class="space-y-4">
-            
-            <div class="grid grid-cols-2 gap-4">
-                <x-input label="Código SKU" wire:model="sku" icon="o-qr-code" />
-                <x-input label="Ubicación" wire:model="location" icon="o-map-pin" placeholder="Ej. A-12" />
-            </div>
+        
+        @if($my_part)
+            <x-tabs selected="tab-data">
+                <x-tab name="tab-data" label="Datos" icon="o-pencil-square">
+                    <div class="mt-4 space-y-4">
+        @endif
+        
+                        {{-- FORMULARIO DE DATOS --}}
+                        <x-form wire:submit="save" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <x-input label="Código SKU" wire:model="sku" icon="o-qr-code" />
+                                <x-input label="Ubicación" wire:model="location" icon="o-map-pin" placeholder="Ej. A-12" />
+                            </div>
 
-            <x-input label="Nombre del Producto" wire:model="name" icon="o-tag" />
-            
-            <div class="grid grid-cols-2 gap-4">
-                <x-input label="Stock Inicial" wire:model="stock" type="number" />
-                <x-input label="Precio Venta ($)" wire:model="price" type="number" step="0.01" prefix="$" class="font-bold" />
-            </div>
+                            <x-input label="Nombre del Producto" wire:model="name" icon="o-tag" />
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <x-input label="Stock Actual" wire:model="stock" type="number" />
+                                <x-input label="Precio Venta ($)" wire:model="price" type="number" step="0.01" prefix="$" class="font-bold" />
+                            </div>
 
-            @if(auth()->user()->isAdmin())
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <x-input label="Costo de Compra ($)" wire:model="cost" type="number" step="0.01" prefix="$" hint="Solo visible para administradores" />
-                </div>
-            @endif
-            
-            <x-slot:actions>
-                <x-button label="Cancelar" wire:click="$toggle('drawer')" />
-                <x-button label="Guardar Producto" class="btn-primary" type="submit" spinner="save" />
-            </x-slot:actions>
-        </x-form>
+                            @if(auth()->user()->isAdmin())
+                                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <x-input label="Costo de Compra ($)" wire:model="cost" type="number" step="0.01" prefix="$" hint="Solo visible para administradores" />
+                                </div>
+                            @endif
+                            
+                            <x-slot:actions>
+                                <x-button label="Cancelar" wire:click="$toggle('drawer')" />
+                                <x-button label="Guardar Producto" class="btn-primary" type="submit" spinner="save" />
+                            </x-slot:actions>
+                        </x-form>
+
+        @if($my_part)
+                    </div>
+                </x-tab>
+                
+                {{-- PESTAÑA HISTORIAL --}}
+                <x-tab name="tab-history" label="Historial" icon="o-clock">
+                    <div class="mt-4">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Últimos Movimientos</div>
+                        <div class="space-y-3">
+                            @forelse($part_history as $log)
+                                <div class="flex gap-3 text-sm border-b border-slate-50 pb-3">
+                                    <div class="flex-none mt-1">
+                                        @if($log->action == 'venta')
+                                            <x-icon name="o-shopping-cart" class="w-4 h-4 text-blue-500" />
+                                        @elseif($log->action == 'creacion')
+                                            <x-icon name="o-plus-circle" class="w-4 h-4 text-green-500" />
+                                        @else
+                                            <x-icon name="o-pencil" class="w-4 h-4 text-slate-400" />
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-slate-800">{{ $log->description }}</div>
+                                        <div class="text-xs text-slate-400">
+                                            {{ $log->created_at->format('d/m/Y H:i') }} • {{ $log->user->name }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-6 text-slate-400 text-xs italic">
+                                    No hay historial registrado aún.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </x-tab>
+            </x-tabs>
+        @endif
+
     </x-drawer>
 </div>

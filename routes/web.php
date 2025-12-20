@@ -66,10 +66,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Clientes
     Volt::route('/clients', 'clients.index')->name('clients');
     Volt::route('/clients/{client}', 'clients.show')->name('clients.show'); // Perfil 360
-    
+    // Ruta de Deudores
+    Volt::route('/debtors', 'debtors.index')->name('debtors.index');
     // Equipos y Repuestos
     Volt::route('/assets', 'assets.index')->name('assets');
     Volt::route('/parts', 'parts.index')->name('parts');
+    Route::get('/parts/{part}/label', [PdfController::class, 'printProductLabel'])->name('parts.label');
 
     // Gestión de Órdenes
     Volt::route('/orders', 'repair-orders.index')->name('orders');
@@ -79,7 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Informes Técnicos
     Volt::route('/orders/{order}/report', 'reports.form')->name('reports.form');
     Route::get('/orders/{order}/report-pdf', [PdfController::class, 'printTechnicalReport'])->name('reports.print');
-
+    Route::get('/orders/{order}/label', [PdfController::class, 'printLabel'])->name('orders.label');
     // Tablero Kanban
     Volt::route('/kanban', 'repair-orders.kanban')->name('kanban');
 

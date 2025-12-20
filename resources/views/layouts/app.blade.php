@@ -99,6 +99,8 @@
                     
                     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-3">Administración</div>
                     <x-menu-item title="Clientes" icon="o-users" link="/clients" />
+                    <x-menu-item title="Cuentas por Cobrar" icon="o-exclamation-circle" link="/debtors" class="hover:bg-red-50 hover:text-red-700 rounded-md text-red-600" />
+
                     <x-menu-item title="Inventario" icon="o-archive-box" link="/parts" />
                     
                     @if(auth()->user()->isAdmin())

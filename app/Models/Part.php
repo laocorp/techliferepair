@@ -20,4 +20,21 @@ class Part extends Model
         'location',
         'company_id'
     ];
+	// Relación con el historial
+    public function history()
+    {
+        return $this->hasMany(PartHistory::class)->latest();
+    }
+    
+    // Helper para registrar cambios
+    public function logChange($action, $description)
+    {
+        $this->history()->create([
+            'company_id' => $this->company_id,
+            'user_id' => auth()->id(),
+            'action' => $action,
+            'description' => $description
+        ]);
+    }	
+
 }

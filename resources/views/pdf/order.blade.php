@@ -12,7 +12,7 @@
             line-height: 1.4;
             background-color: #fff;
             /* Márgenes para el contenido (dejan espacio a header/footer) */
-            margin-top: 3.5cm;
+            margin-top: 4.8cm;
             margin-bottom: 2.5cm;
             margin-left: 1.5cm;
             margin-right: 1.5cm;
@@ -26,8 +26,8 @@
             padding: 0.8cm 1.5cm;
         }
 
-        .logo-text { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; color: #0f172a; }
-        .company-details { font-size: 9px; color: #64748b; margin-top: 4px; line-height: 1.3; }
+        .logo-text { font-size: 29px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; color: #0f172a; }
+        .company-details { font-size: 14px; color: #64748b; margin-top: 4px; line-height: 1.3; }
         
         .doc-title { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #3b82f6; letter-spacing: 2px; text-align: right; }
         .doc-number { font-size: 24px; font-weight: 900; color: #0f172a; text-align: right; letter-spacing: -0.5px; line-height: 1; margin-top: 2px; }
